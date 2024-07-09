@@ -1,20 +1,29 @@
-import 'package:socket_io_client/socket_io_client.dart';
+import 'package:signalr_netcore/msgpack_hub_protocol.dart';
+import 'package:signalr_netcore/signalr_client.dart';
 
-class SocketClient {
+class ConnectionClient {
   final EventListeners eventNotifier;
-  final Socket _socket = io(
-      'http://localhost:3000',
-      OptionBuilder()
-          .setTransports(['websocket'])
-          .disableAutoConnect()
-          .setExtraHeaders({'foo': 'bar'})
-          .build());
+  late HubConnection? _connection;
 
-  void connect() {
-    _socket.connect();
+  void buildSignalR() {
+    _connection = HubConnectionBuilder()
+        .withUrl("serverUrl")
+        .withHubProtocol(MessagePackHubProtocol())
+        .withSingleListener(true)
+        .build();
   }
 
-  SocketClient(this.eventNotifier);
+  Future<void> connect() async {
+    await _connection?.start();
+  }
+
+  Future<void> disconnect() async {
+    await _connection?.stop();
+  }
+
+  ConnectionClient(this.eventNotifier) {
+    buildSignalR();
+  }
 }
 
 abstract class EventListeners {

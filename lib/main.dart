@@ -45,12 +45,12 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
 
   List<int> _fileBytes = [];
 
-  late SocketClient _socketClient;
+  late ConnectionClient _connectionClient;
 
   @override
   void initState() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    _socketClient = SocketClient(this);
+    _connectionClient = ConnectionClient(this);
     super.initState();
   }
 
@@ -125,12 +125,15 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
                   ),
                 ),
                 ScaleTap(
-                  onPressed: () {
-                    ReceiveBottomSheetDialog.show(context);
-                    _selectedFile = null;
-                    _fileBytes = [];
-                    _key.currentState?.reset();
-                    setState(() {});
+                  onPressed: () async {
+                    await _connectionClient.connect();
+                    if (context.mounted) {
+                      ReceiveBottomSheetDialog.show(context);
+                      _selectedFile = null;
+                      _fileBytes = [];
+                      _key.currentState?.reset();
+                      setState(() {});
+                    }
                   },
                   child: Container(
                     width: 52,
