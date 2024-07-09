@@ -8,7 +8,6 @@
 .buildlog/
 .history
 .svn/
-./test_files/
 migrate_working_dir/
 
 # IntelliJ related
@@ -31,6 +30,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/test_files/
 
 # Symbolication related
 app.*.symbols
