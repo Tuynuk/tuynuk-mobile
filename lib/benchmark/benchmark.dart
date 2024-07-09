@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import '../crypto/crypto.dart';
+
 ///Test file [encoding,decoding] in base64 format
 void main() async {
   final start = DateTime.now().millisecondsSinceEpoch;
@@ -15,3 +17,4 @@ void main() async {
   final end = DateTime.now().millisecondsSinceEpoch;
   print("Benchmark : ${(end - start)} ms");
 }
+
