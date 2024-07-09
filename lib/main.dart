@@ -3,9 +3,13 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pointycastle/ecc/api.dart';
+import 'package:pointycastle/impl.dart';
+import 'package:safe_file_sender/crypto/crypto.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/receive_bottom_sheet_dialog.dart';
 import 'package:safe_file_sender/scale_tap.dart';
+import 'package:safe_file_sender/send_bottom_sheet_dialog.dart';
 import 'package:safe_file_sender/snap_effect.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,8 +55,12 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
   void initState() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _connectionClient = ConnectionClient(this);
+    _connectionClient.connect();
     super.initState();
   }
+
+  ECPrivateKey? _privateKey;
+  ECPublicKey? _publicKey;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +75,13 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
               children: [
                 ScaleTap(
                   onPressed: () async {
-                    _key.currentState?.snap();
+                    final pair = AppCrypto.generateRSAKeyPair();
+                    _privateKey = pair.privateKey;
+                    _publicKey = pair.publicKey;
+                    SendBottomSheetDialog.show(context, (identifier) {
+                      _connectionClient.joinSession(
+                          identifier, AppCrypto.encodeECPublicKey(_publicKey!));
+                    });
                   },
                   child: Container(
                     width: 52,
@@ -126,13 +140,14 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
                 ),
                 ScaleTap(
                   onPressed: () async {
+                    ReceiveBottomSheetDialog.show(context);
                     await _connectionClient.connect();
-                    if (context.mounted) {
-                      ReceiveBottomSheetDialog.show(context);
-                      _selectedFile = null;
-                      _fileBytes = [];
-                      _key.currentState?.reset();
-                      setState(() {});
+                    if (_connectionClient.isConnected) {
+                      final keyPair = AppCrypto.generateRSAKeyPair();
+                      _publicKey = keyPair.publicKey;
+                      _privateKey = keyPair.privateKey;
+                      _connectionClient.createSession(
+                          AppCrypto.encodeECPublicKey(keyPair.publicKey));
                     }
                   },
                   child: Container(
@@ -174,7 +189,19 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
   }
 
   @override
-  void onPublicKeyReceived(String publicKey) async {
+  Future<void> onPublicKeyReceived(String publicKey) async {
+    final sharedKey = AppCrypto.deriveSharedSecret(
+        _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
+    print("Shared key derived $sharedKey");
+  }
+
+  @override
+  Future<void> onIdentifierReceived(String publicKey) async {
+    ReceiveBottomSheetDialog.hide(context);
+  }
+
+  @override
+  Future<void> onConnected() async {
     //
   }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class ReceiveBottomSheetDialog {
+class SendBottomSheetDialog {
   static bool _isVisible = false;
 
-  static Future<void> show(BuildContext context) async {
+  static Future<void> show(BuildContext context,
+      Function(String identifier) onIdentifierInput) async {
+    final TextEditingController textEditingController = TextEditingController();
     _isVisible = true;
     showModalBottomSheet(
       backgroundColor: Colors.black,
@@ -18,18 +20,20 @@ class ReceiveBottomSheetDialog {
           ),
           margin: const EdgeInsets.all(24),
           height: 200,
-          child: const Center(
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(
-                  color: Colors.white,
+                TextField(
+                  controller: textEditingController,
                 ),
-                Padding(padding: EdgeInsets.all(12)),
-                Text(
-                  "Waiting for file...",
-                  style: TextStyle(color: Colors.white, fontFamily: "Raleway"),
-                )
+                TextButton(
+                  onPressed: () {
+                    onIdentifierInput.call(textEditingController.text.trim());
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Connect"),
+                ),
               ],
             ),
           ),
