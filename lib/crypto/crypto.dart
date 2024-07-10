@@ -21,7 +21,7 @@ class AppCrypto {
   }
 
   static Uint8List encryptAES(
-      Uint8List plaintext, Uint8List key, Uint8List iv) {
+      Uint8List plaintext, Uint8List key) {
     final blockCipher = BlockCipher('AES');
 
     final params = ParametersWithIV<KeyParameter>(

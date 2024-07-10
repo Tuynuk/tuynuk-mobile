@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -6,11 +8,13 @@ import 'package:flutter/services.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:pointycastle/impl.dart';
 import 'package:safe_file_sender/crypto/crypto.dart';
+import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
-import 'package:safe_file_sender/receive_bottom_sheet_dialog.dart';
-import 'package:safe_file_sender/scale_tap.dart';
-import 'package:safe_file_sender/send_bottom_sheet_dialog.dart';
-import 'package:safe_file_sender/snap_effect.dart';
+import 'package:safe_file_sender/dialogs/receive_bottom_sheet_dialog.dart';
+import 'package:safe_file_sender/models/user_state_enum.dart';
+import 'package:safe_file_sender/widgets/scale_tap.dart';
+import 'package:safe_file_sender/dialogs/send_bottom_sheet_dialog.dart';
+import 'package:safe_file_sender/widgets/snap_effect.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() {
@@ -55,12 +59,13 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
   void initState() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _connectionClient = ConnectionClient(this);
-    _connectionClient.connect();
     super.initState();
   }
 
   ECPrivateKey? _privateKey;
   ECPublicKey? _publicKey;
+  Uint8List? _sharedKey;
+  UserStateEnum? _userStateEnum;
 
   @override
   Widget build(BuildContext context) {
@@ -75,13 +80,25 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
               children: [
                 ScaleTap(
                   onPressed: () async {
+                    await _connectionClient.connect();
+
+                    _userStateEnum == UserStateEnum.sender;
+                    if (!context.mounted) return;
+                    _userStateEnum = UserStateEnum.sender;
                     final pair = AppCrypto.generateRSAKeyPair();
                     _privateKey = pair.privateKey;
                     _publicKey = pair.publicKey;
-                    SendBottomSheetDialog.show(context, (identifier) {
-                      _connectionClient.joinSession(
-                          identifier, AppCrypto.encodeECPublicKey(_publicKey!));
-                    });
+                    SendBottomSheetDialog.show(
+                      context,
+                      (identifier) {
+                        logMessage("Joining : $identifier");
+                        _connectionClient.joinSession(identifier,
+                            AppCrypto.encodeECPublicKey(_publicKey!));
+                      },
+                      onClose: () async {
+                        //
+                      },
+                    ).then((value) {});
                   },
                   child: Container(
                     width: 52,
@@ -140,8 +157,16 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
                 ),
                 ScaleTap(
                   onPressed: () async {
-                    ReceiveBottomSheetDialog.show(context);
                     await _connectionClient.connect();
+
+                    if (!context.mounted) return;
+                    ReceiveBottomSheetDialog.show(context, onClose: () async {
+                      // await _connectionClient.disconnect();
+                    });
+                    // await _connectionClient.connect();
+
+                    _userStateEnum = UserStateEnum.receiver;
+
                     if (_connectionClient.isConnected) {
                       final keyPair = AppCrypto.generateRSAKeyPair();
                       _publicKey = keyPair.publicKey;
@@ -190,18 +215,37 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
 
   @override
   Future<void> onPublicKeyReceived(String publicKey) async {
+    logMessage("PublicKey : $publicKey");
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
-    print("Shared key derived $sharedKey");
+    logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
+    _sharedKey = sharedKey;
+
+    if (_userStateEnum == UserStateEnum.sender) {
+      final encrypted =
+          AppCrypto.encryptAES(_selectedFile!.readAsBytesSync(), _sharedKey!);
+      _connectionClient.sendFile(base64Encode(encrypted), "fileName");
+    }
   }
 
   @override
   Future<void> onIdentifierReceived(String publicKey) async {
-    ReceiveBottomSheetDialog.hide(context);
+    // ReceiveBottomSheetDialog.hide(context);
   }
 
   @override
   Future<void> onConnected() async {
     //
+  }
+
+  @override
+  Future<void> onFileReceived(String content) async {
+    final decBytes = AppCrypto.decryptAES(base64Decode(content), _sharedKey!);
+    final file = File("file.exp");
+    file.writeAsBytesSync(decBytes);
+
+    if (_userStateEnum == UserStateEnum.receiver) {
+      await _connectionClient.disconnect();
+    }
   }
 }

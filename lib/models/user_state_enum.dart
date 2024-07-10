@@ -1,0 +1,4 @@
+enum UserStateEnum {
+  sender,
+  receiver,
+}

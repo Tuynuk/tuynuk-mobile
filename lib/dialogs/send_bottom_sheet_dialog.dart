@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 class SendBottomSheetDialog {
   static bool _isVisible = false;
 
-  static Future<void> show(BuildContext context,
-      Function(String identifier) onIdentifierInput) async {
+  static Future<void> show(
+      BuildContext context, Function(String identifier) onIdentifierInput,
+      {required Function() onClose}) async {
     final TextEditingController textEditingController = TextEditingController();
     _isVisible = true;
     showModalBottomSheet(
@@ -41,6 +42,7 @@ class SendBottomSheetDialog {
       },
     ).then((value) {
       _isVisible = false;
+      onClose.call();
     });
   }
 
