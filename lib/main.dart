@@ -12,6 +12,7 @@ import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/dialogs/receive_bottom_sheet_dialog.dart';
 import 'package:safe_file_sender/models/user_state_enum.dart';
+import 'package:safe_file_sender/widgets/button.dart';
 import 'package:safe_file_sender/widgets/scale_tap.dart';
 import 'package:safe_file_sender/dialogs/send_bottom_sheet_dialog.dart';
 import 'package:safe_file_sender/widgets/snap_effect.dart';
@@ -78,39 +79,13 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ScaleTap(
-                  onPressed: () async {
-                    await _connectionClient.connect();
-
-                    _userStateEnum == UserStateEnum.sender;
-                    if (!context.mounted) return;
-                    _userStateEnum = UserStateEnum.sender;
-                    final pair = AppCrypto.generateRSAKeyPair();
-                    _privateKey = pair.privateKey;
-                    _publicKey = pair.publicKey;
-                    SendBottomSheetDialog.show(
-                      context,
-                      (identifier) {
-                        logMessage("Joining : $identifier");
-                        _connectionClient.joinSession(identifier,
-                            AppCrypto.encodeECPublicKey(_publicKey!));
-                      },
-                      onClose: () async {
-                        //
-                      },
-                    ).then((value) {});
+                Button(
+                  onTap: () async {
+                    _send();
                   },
-                  child: Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: Colors.deepPurple,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.upload,
-                      color: Colors.white,
-                    ),
+                  child: const Icon(
+                    Icons.upload,
+                    color: Colors.white,
                   ),
                 ),
                 ScaleTap(
@@ -155,37 +130,13 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
                     ),
                   ),
                 ),
-                ScaleTap(
-                  onPressed: () async {
-                    await _connectionClient.connect();
-
-                    if (!context.mounted) return;
-                    ReceiveBottomSheetDialog.show(context, onClose: () async {
-                      // await _connectionClient.disconnect();
-                    });
-                    // await _connectionClient.connect();
-
-                    _userStateEnum = UserStateEnum.receiver;
-
-                    if (_connectionClient.isConnected) {
-                      final keyPair = AppCrypto.generateRSAKeyPair();
-                      _publicKey = keyPair.publicKey;
-                      _privateKey = keyPair.privateKey;
-                      _connectionClient.createSession(
-                          AppCrypto.encodeECPublicKey(keyPair.publicKey));
-                    }
+                Button(
+                  onTap: () async {
+                    _receive();
                   },
-                  child: Container(
-                    width: 52,
-                    decoration: BoxDecoration(
-                      color: Colors.deepPurple,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    height: 52,
-                    child: const Icon(
-                      Icons.download,
-                      color: Colors.white,
-                    ),
+                  child: const Icon(
+                    Icons.download,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -211,6 +162,48 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
         ],
       ),
     );
+  }
+
+  Future<void> _send() async {
+    await _connectionClient.connect();
+
+    _userStateEnum == UserStateEnum.sender;
+    _userStateEnum = UserStateEnum.sender;
+    final pair = AppCrypto.generateRSAKeyPair();
+    _privateKey = pair.privateKey;
+    _publicKey = pair.publicKey;
+    if (!context.mounted) return;
+    SendBottomSheetDialog.show(
+      context,
+      (identifier) {
+        logMessage("Joining : $identifier");
+        _connectionClient.joinSession(
+            identifier, AppCrypto.encodeECPublicKey(_publicKey!));
+      },
+      onClose: () async {
+        //
+      },
+    ).then((value) {});
+  }
+
+  Future<void> _receive() async {
+    await _connectionClient.connect();
+
+    if (!context.mounted) return;
+    ReceiveBottomSheetDialog.show(context, onClose: () async {
+      // await _connectionClient.disconnect();
+    });
+    // await _connectionClient.connect();
+
+    _userStateEnum = UserStateEnum.receiver;
+
+    if (_connectionClient.isConnected) {
+      final keyPair = AppCrypto.generateRSAKeyPair();
+      _publicKey = keyPair.publicKey;
+      _privateKey = keyPair.privateKey;
+      _connectionClient
+          .createSession(AppCrypto.encodeECPublicKey(keyPair.publicKey));
+    }
   }
 
   @override
@@ -245,7 +238,16 @@ class _MyHomePageState extends State<MyHomePage> implements EventListeners {
     file.writeAsBytesSync(decBytes);
 
     if (_userStateEnum == UserStateEnum.receiver) {
+      _clear();
       await _connectionClient.disconnect();
     }
+  }
+
+  _clear() {
+    _publicKey = null;
+    _privateKey = null;
+    _userStateEnum = null;
+    _fileBytes = [];
+    _selectedFile = null;
   }
 }
