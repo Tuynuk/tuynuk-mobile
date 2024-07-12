@@ -13,6 +13,19 @@ class AppCrypto {
     return Uint8List.fromList(values);
   }
 
+  static Future<Uint8List> encryptAESInIsolate(
+      Uint8List plaintext, Uint8List key) async {
+    final receivePort = ReceivePort();
+    final isolate = await Isolate.spawn(
+      _encryptIsolateEntry,
+      _IsolateData(plaintext, key, receivePort.sendPort),
+    );
+
+    final result = await receivePort.first as Uint8List;
+    isolate.kill(priority: Isolate.immediate);
+    return result;
+  }
+
   static Uint8List encryptAES(Uint8List plaintext, Uint8List key) {
     final iv = _generateRandomBytes(16);
 
@@ -33,7 +46,8 @@ class AppCrypto {
     return Uint8List.fromList(iv + encrypted);
   }
 
-  static Future<Uint8List> decryptAESInIsolate(Uint8List bytes, Uint8List sharedKey) async {
+  static Future<Uint8List> decryptAESInIsolate(
+      Uint8List bytes, Uint8List sharedKey) async {
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawn(
       _isolateEntry,
@@ -44,6 +58,7 @@ class AppCrypto {
     isolate.kill(priority: Isolate.immediate);
     return result;
   }
+
   static Uint8List decryptAES(Uint8List ciphertext, Uint8List key) {
     final iv = ciphertext.sublist(0, 16);
     final encrypted = ciphertext.sublist(16);
@@ -150,6 +165,11 @@ class AppCrypto {
 
     return Uint8List.fromList(byteList);
   }
+}
+
+void _encryptIsolateEntry(_IsolateData data) {
+  final encryptedBytes = AppCrypto.encryptAES(data.bytes, data.sharedKey);
+  data.sendPort.send(encryptedBytes);
 }
 
 void _isolateEntry(_IsolateData data) {

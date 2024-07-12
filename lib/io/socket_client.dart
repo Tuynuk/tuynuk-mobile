@@ -90,6 +90,7 @@ class ConnectionClient {
 
   Future<void> disconnect() async {
     await _connection?.stop();
+    _dio.close(force: true);
   }
 
   ConnectionClient(this._eventNotifier) {

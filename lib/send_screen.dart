@@ -96,7 +96,10 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
             ),
             ElevatedButton(
               onPressed: () {
-                _send();
+                if (_textEditingController.text.trim().isNotEmpty &&
+                    _selectedFile != null) {
+                  _send();
+                }
               },
               child: _senderStateController.state != SenderStateEnum.initial
                   ? const SizedBox(
@@ -128,7 +131,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
               child: Snappable(
                 key: _key,
                 onSnapped: () {
-                  //
+                  _clear();
                 },
                 child: Container(
                   height: 32,
@@ -159,15 +162,20 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
             const Padding(
               padding: EdgeInsets.all(16),
             ),
-            SizedBox(
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.white12,
+              ),
               height: 300,
+              width: MediaQuery.sizeOf(context).width,
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ..._senderStateController.history.map(
                       (e) => Container(
-                        margin: const EdgeInsets.only(top: 4),
+                        margin: const EdgeInsets.only(top: 4, left: 4),
                         alignment: Alignment.centerLeft,
                         child: Text(
                           e.value,
@@ -191,6 +199,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
   Future<void> _send() async {
     setState(() {
+      _senderStateController.history.clear();
       _senderStateController.setState(SenderStateEnum.loading);
     });
     await _connectionClient.connect();
@@ -200,6 +209,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     });
     if (_connectionClient.isConnected) {
       setState(() {
+        _senderStateController.setState(SenderStateEnum.connected);
         _senderStateController.setState(SenderStateEnum.generatingKey);
       });
       final pair = AppCrypto.generateECKeyPair();
@@ -242,7 +252,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
         AppCrypto.encryptAES(_selectedFile!.readAsBytesSync(), _sharedKey!);
 
     setState(() {
-      _senderStateController.setState(SenderStateEnum.writingEncrytedFile);
+      _senderStateController.setState(SenderStateEnum.writingEncryptedFile);
     });
     final encFile = File(
         "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
@@ -257,17 +267,19 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
         _textEditingController.text.toUpperCase().trim());
 
     logMessage("Sent : $sent");
-    _clear();
+    _key.currentState?.snap();
   }
 
   _clear() {
     setState(() {
       _senderStateController.setState(SenderStateEnum.initial);
     });
+    _textEditingController.clear();
     _publicKey = null;
     _privateKey = null;
     _fileBytes = [];
     _selectedFile = null;
+    _key.currentState?.reset();
   }
 
   @override

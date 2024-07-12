@@ -6,10 +6,11 @@ enum SenderStateEnum {
   sendingFile("Sending encrypted file"),
   initial("Initial"),
   connection("Connecting to the server"),
+  connected("Connected"),
   joining("Joining to the session"),
   encryptionFile("Encrypting file"),
   writingFile("Writing file"),
-  writingEncrytedFile("Writing encrypted file"),
+  writingEncryptedFile("Writing encrypted file"),
   clearing("Clearing");
 
   const SenderStateEnum(this.value);
@@ -46,7 +47,6 @@ class SenderStateController {
   }
 
   void restart() {
-    _history.clear();
     _currentState = SenderStateEnum.initial;
   }
 }
