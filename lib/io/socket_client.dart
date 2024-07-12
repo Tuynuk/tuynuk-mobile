@@ -1,10 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:signalr_netcore/json_hub_protocol.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 
 class ConnectionClient {
-  final EventListeners _eventNotifier;
+  final BaseEventListeners _eventNotifier;
   late HubConnection? _connection;
+  final Dio _dio = Dio(
+    BaseOptions(baseUrl: "http://192.168.1.18:8088/api/"),
+  );
+
+  Dio get dio => _dio;
 
   void buildSignalR() {
     _connection = HubConnectionBuilder()
@@ -32,27 +38,33 @@ class ConnectionClient {
     ]);
   }
 
-  Future<void> sendFile(String fileBase64, String fileName) async {
-    _connection?.send("SendFile", args: [
-      {
-        "fileName": fileName,
-        "base64": fileBase64,
-      }
-    ]);
+  Future<bool> sendFile(
+      String filePath, String fileName, String sessionId) async {
+    FormData data = FormData.fromMap({
+      "formFile": await MultipartFile.fromFile(filePath, filename: fileName),
+    });
+
+    final response =
+        await _dio.post("Files/UploadFile", data: data, queryParameters: {
+      "sessionIdentifier": sessionId,
+    });
+    return response.statusCode == 200;
   }
 
   Future<void> _listenEvents() async {
     _connection?.on('OnSessionCreated', (message) async {
       _log("OnSessionCreated : $message");
-      _eventNotifier.onIdentifierReceived(message![0].toString());
+      (_eventNotifier as ReceiverListeners)
+          .onIdentifierReceived(message![0].toString());
     });
     _connection?.on('OnSessionReady', (message) async {
       _log("OnSessionReady : $message");
       _eventNotifier.onPublicKeyReceived(message![0].toString());
     });
-    _connection?.on('OnFiledReceived', (message) async {
-      _log("OnFiledReceived : $message");
-      _eventNotifier.onFileReceived(message![0].toString());
+    _connection?.on('OnFileUploaded', (message) async {
+      _log("OnFileUploaded : $message");
+      (_eventNotifier as ReceiverListeners)
+          .onFileReceived(message![0].toString());
     });
   }
 
@@ -79,12 +91,16 @@ class ConnectionClient {
   _log(dynamic message) => logMessage(message);
 }
 
-abstract class EventListeners {
+abstract class BaseEventListeners {
   Future<void> onPublicKeyReceived(String publicKey);
 
+  Future<void> onConnected();
+}
+
+abstract class ReceiverListeners extends BaseEventListeners {
   Future<void> onIdentifierReceived(String publicKey);
 
-  Future<void> onConnected();
-
-  Future<void> onFileReceived(String content);
+  Future<void> onFileReceived(String fileId);
 }
+
+abstract class SenderListeners extends BaseEventListeners {}

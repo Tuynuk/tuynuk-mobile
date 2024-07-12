@@ -3,15 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
-import 'package:pointycastle/api.dart';
-import 'package:pointycastle/asymmetric/api.dart';
-import 'package:pointycastle/ecc/api.dart';
-import 'package:pointycastle/ecc/curves/brainpoolp320r1.dart';
 import 'package:pointycastle/export.dart';
-import 'package:pointycastle/key_generators/api.dart';
-import 'package:pointycastle/key_generators/ec_key_generator.dart';
-import 'package:pointycastle/key_generators/rsa_key_generator.dart';
-import 'package:pointycastle/random/fortuna_random.dart';
 
 class AppCrypto {
   static Uint8List _generateRandomBytes(int length) {
@@ -20,32 +12,56 @@ class AppCrypto {
     return Uint8List.fromList(values);
   }
 
-  static Uint8List encryptAES(
-      Uint8List plaintext, Uint8List key) {
-    final blockCipher = BlockCipher('AES');
+  static Uint8List encryptAES(Uint8List plaintext, Uint8List key) {
+    final iv = _generateRandomBytes(16);
 
-    final params = ParametersWithIV<KeyParameter>(
-        KeyParameter(key), _generateRandomBytes(16));
+    final cipher = PaddedBlockCipherImpl(
+      PKCS7Padding(),
+      CBCBlockCipher(AESFastEngine()),
+    )..init(
+        true,
+        PaddedBlockCipherParameters(
+          ParametersWithIV<KeyParameter>(
+              KeyParameter(Uint8List.fromList(key.sublist(0, 32))), iv),
+          null,
+        ),
+      );
 
-    blockCipher.init(true, params);
+    final encrypted = cipher.process(plaintext);
 
-    final encrypted = blockCipher.process(Uint8List.fromList(plaintext));
-
-    return encrypted;
+    return Uint8List.fromList(iv + encrypted);
   }
 
-  static Uint8List decryptAES(Uint8List encryptedData, Uint8List key) {
-    Uint8List iv = encryptedData.sublist(0, 16);
+  static Uint8List decryptAES(Uint8List ciphertext, Uint8List key) {
+    final iv = ciphertext.sublist(0, 16);
+    final encrypted = ciphertext.sublist(16);
 
-    final blockCipher = BlockCipher('AES');
+    final cipher = PaddedBlockCipherImpl(
+      PKCS7Padding(),
+      CBCBlockCipher(AESFastEngine()),
+    )..init(
+        false,
+        PaddedBlockCipherParameters(
+          ParametersWithIV<KeyParameter>(KeyParameter(key.sublist(0, 32)), iv),
+          null,
+        ),
+      );
 
-    final params = ParametersWithIV<KeyParameter>(KeyParameter(key), iv);
-
-    blockCipher.init(false, params);
-
-    final decrypted = blockCipher.process(encryptedData.sublist(16));
+    final decrypted = cipher.process(encrypted);
 
     return decrypted;
+  }
+
+  static AsymmetricKeyPair<ECPublicKey, ECPrivateKey> generateECKeyPair(
+      {int bitLength = 2048}) {
+    final keyGen = ECKeyGenerator()
+      ..init(ParametersWithRandom(
+          ECKeyGeneratorParameters(ECCurve_secp256r1()), _secureRandom()));
+    final pair = keyGen.generateKeyPair();
+    final public = pair.publicKey as ECPublicKey;
+    final private = pair.privateKey as ECPrivateKey;
+
+    return AsymmetricKeyPair<ECPublicKey, ECPrivateKey>(public, private);
   }
 
   static SecureRandom _secureRandom() {
@@ -57,18 +73,6 @@ class AppCrypto {
     }
     secureRandom.seed(KeyParameter(Uint8List.fromList(seeds)));
     return secureRandom;
-  }
-
-  static AsymmetricKeyPair<ECPublicKey, ECPrivateKey> generateRSAKeyPair(
-      {int bitLength = 2048}) {
-    final keyGen = ECKeyGenerator()
-      ..init(ParametersWithRandom(
-          ECKeyGeneratorParameters(ECCurve_secp256r1()), _secureRandom()));
-    final pair = keyGen.generateKeyPair();
-    final public = pair.publicKey as ECPublicKey;
-    final private = pair.privateKey as ECPrivateKey;
-
-    return AsymmetricKeyPair<ECPublicKey, ECPrivateKey>(public, private);
   }
 
   static Uint8List deriveSharedSecret(

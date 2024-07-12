@@ -35,6 +35,9 @@ dependencies:
   url_launcher: ^6.3.0
   file_picker: ^8.0.6
   convert: ^3.1.1
+  path_provider: ^2.0.1
+  dio: ^5.5.0+1
+  share_plus: ^9.0.0
   signalr_netcore:
     git:
       url: https://github.com/xaldarof/signalr_client_plus.git
