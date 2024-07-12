@@ -17,7 +17,7 @@ class AppCrypto {
 
     final cipher = PaddedBlockCipherImpl(
       PKCS7Padding(),
-      CBCBlockCipher(AESFastEngine()),
+      CBCBlockCipher(AESEngine()),
     )..init(
         true,
         PaddedBlockCipherParameters(
@@ -38,7 +38,7 @@ class AppCrypto {
 
     final cipher = PaddedBlockCipherImpl(
       PKCS7Padding(),
-      CBCBlockCipher(AESFastEngine()),
+      CBCBlockCipher(AESEngine()),
     )..init(
         false,
         PaddedBlockCipherParameters(
@@ -123,24 +123,19 @@ class AppCrypto {
   }
 
   static Uint8List _bigIntToByteArray(BigInt bigInt) {
-    var byteArray = bigInt
-        .toUnsigned(8 * ((bigInt.bitLength + 7) >> 3))
-        .toRadixString(16)
-        .padLeft((bigInt.bitLength + 7) >> 3 * 2, '0');
+    String hexString = bigInt.toRadixString(16);
 
-    if (bigInt < BigInt.zero) {
-      var negativeByteArray = (BigInt.one << (byteArray.length * 4)) + bigInt;
-      byteArray = negativeByteArray
-          .toUnsigned(8 * ((negativeByteArray.bitLength + 7) >> 3))
-          .toRadixString(16)
-          .padLeft((negativeByteArray.bitLength + 7) >> 3 * 2, '0');
+    if (hexString.length % 2 != 0) {
+      hexString = '0$hexString';
     }
 
-    var result = Uint8List((byteArray.length / 2).ceil());
-    for (var i = 0; i < result.length; i++) {
-      result[i] = int.parse(byteArray.substring(i * 2, i * 2 + 2), radix: 16);
+    List<int> byteList = [];
+    for (int i = 0; i < hexString.length; i += 2) {
+      String byteString = hexString.substring(i, i + 2);
+      int byteValue = int.parse(byteString, radix: 16);
+      byteList.add(byteValue);
     }
 
-    return result;
+    return Uint8List.fromList(byteList);
   }
 }

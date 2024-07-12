@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -8,10 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/crypto/crypto.dart';
 import 'package:safe_file_sender/dev/logger.dart';
-import 'package:safe_file_sender/dialogs/send_bottom_sheet_dialog.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
+import 'package:safe_file_sender/models/sender_state_enum.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
-import 'package:safe_file_sender/widgets/button.dart';
 import 'package:safe_file_sender/widgets/scale_tap.dart';
 import 'package:safe_file_sender/widgets/snap_effect.dart';
 
@@ -33,80 +31,192 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   void initState() {
     _connectionClient = ConnectionClient(this);
 
+    _senderStateController.onStateChanged((state) async {
+      if (state == SenderStateEnum.failed) {
+        _connectionClient.disconnect();
+      }
+    });
     super.initState();
   }
 
   final TextEditingController _textEditingController = TextEditingController();
+  final SenderStateController _senderStateController = SenderStateController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Column(
+      resizeToAvoidBottomInset: false,
+      bottomNavigationBar: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TextField(controller: _textEditingController),
-          Button(
-            onTap: () {
-              _send();
-            },
-            child: const Icon(Icons.send),
-          ),
-          ScaleTap(
-            onPressed: () async {
-              if (_selectedFile != null) return;
-              final files =
-                  (await FilePicker.platform.pickFiles())?.files ?? [];
-              final file = files.first;
-              _selectedFile = File(file.path ?? "");
-              _fileBytes = _selectedFile!.readAsBytesSync().toList();
-              setState(() {});
-            },
-            child: Snappable(
-              key: _key,
-              onSnapped: () {
-                //
+          Container(
+            alignment: Alignment.center,
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12), color: Colors.white12),
+            margin: const EdgeInsets.all(24),
+            child: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
               },
-              child: Container(
-                height: 32,
-                alignment: Alignment.center,
-                margin: const EdgeInsets.all(24),
-                child: _selectedFile == null
-                    ? const Text(
-                        "Select file",
-                        style:
-                            TextStyle(color: Colors.white, fontFamily: "Hack"),
-                      )
-                    : ListView.builder(
-                        itemExtent: 34,
-                        itemCount: (_fileBytes.length * .3).toInt(),
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (e, index) {
-                          final bit = _fileBytes[index]
-                              .toRadixString(2)
-                              .padLeft(8, '0');
-                          return Text(
-                            bit,
-                            style: const TextStyle(color: Colors.white),
-                          );
-                        },
-                      ),
+              icon: const Icon(
+                Icons.close,
+                color: Colors.white,
               ),
             ),
           ),
         ],
       ),
+      backgroundColor: Colors.black,
+      body: Container(
+        margin: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(24),
+            ),
+            TextField(
+              style: const TextStyle(fontFamily: "Hack", color: Colors.white),
+              controller: _textEditingController,
+              decoration: InputDecoration(
+                hintStyle:
+                    const TextStyle(color: Colors.white54, fontFamily: "Hack"),
+                hintText: "Input session id",
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.white60)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(12),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _send();
+              },
+              child: _senderStateController.state != SenderStateEnum.initial
+                  ? const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      "Send",
+                      style: TextStyle(fontFamily: "Hack"),
+                    ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16),
+            ),
+            ScaleTap(
+              onPressed: () async {
+                if (_selectedFile != null) return;
+                final files =
+                    (await FilePicker.platform.pickFiles())?.files ?? [];
+                final file = files.first;
+                _selectedFile = File(file.path ?? "");
+                _fileBytes = _selectedFile!.readAsBytesSync().toList();
+                setState(() {});
+              },
+              child: Snappable(
+                key: _key,
+                onSnapped: () {
+                  //
+                },
+                child: Container(
+                  height: 32,
+                  alignment: Alignment.center,
+                  child: _selectedFile == null
+                      ? const Text(
+                          "Select file",
+                          style: TextStyle(
+                              color: Colors.white, fontFamily: "Hack"),
+                        )
+                      : ListView.builder(
+                          itemExtent: 34,
+                          itemCount: (_fileBytes.length * .3).toInt(),
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (e, index) {
+                            final bit = _fileBytes[index]
+                                .toRadixString(2)
+                                .padLeft(8, '0');
+                            return Text(
+                              bit,
+                              style: const TextStyle(color: Colors.white),
+                            );
+                          },
+                        ),
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16),
+            ),
+            SizedBox(
+              height: 300,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ..._senderStateController.history.map(
+                      (e) => Container(
+                        margin: const EdgeInsets.only(top: 4),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          e.value,
+                          style: const TextStyle(
+                              color: Colors.white60,
+                              fontFamily: "Hack",
+                              fontSize: 8),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Future<void> _send() async {
+    setState(() {
+      _senderStateController.setState(SenderStateEnum.loading);
+    });
     await _connectionClient.connect();
 
-    final pair = AppCrypto.generateECKeyPair();
-    _privateKey = pair.privateKey;
-    _publicKey = pair.publicKey;
+    setState(() {
+      _senderStateController.setState(SenderStateEnum.connection);
+    });
+    if (_connectionClient.isConnected) {
+      setState(() {
+        _senderStateController.setState(SenderStateEnum.generatingKey);
+      });
+      final pair = AppCrypto.generateECKeyPair();
+      _privateKey = pair.privateKey;
+      _publicKey = pair.publicKey;
 
-    _connectionClient.joinSession(
-        _textEditingController.text, AppCrypto.encodeECPublicKey(_publicKey!));
+      setState(() {
+        _senderStateController.setState(SenderStateEnum.joining);
+      });
+      _connectionClient.joinSession(
+          _textEditingController.text.trim().toUpperCase(),
+          AppCrypto.encodeECPublicKey(_publicKey!));
+    } else {
+      setState(() {
+        _senderStateController.setState(SenderStateEnum.failed);
+      });
+    }
   }
 
   @override
@@ -117,29 +227,52 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   @override
   Future<void> onPublicKeyReceived(String publicKey) async {
     logMessage("PublicKey : $publicKey");
+    setState(() {
+      _senderStateController.setState(SenderStateEnum.sharedKeyDeriving);
+    });
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _sharedKey = sharedKey;
 
+    setState(() {
+      _senderStateController.setState(SenderStateEnum.encryptionFile);
+    });
     final encrypted =
         AppCrypto.encryptAES(_selectedFile!.readAsBytesSync(), _sharedKey!);
+
+    setState(() {
+      _senderStateController.setState(SenderStateEnum.writingEncrytedFile);
+    });
     final encFile = File(
         "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
     encFile.writeAsBytesSync(encrypted);
 
+    setState(() {
+      _senderStateController.setState(SenderStateEnum.sendingFile);
+    });
     final sent = await _connectionClient.sendFile(
         encFile.path,
         FileUtils.fileName(_selectedFile!.path),
-        _textEditingController.text.trim());
+        _textEditingController.text.toUpperCase().trim());
+
     logMessage("Sent : $sent");
     _clear();
   }
 
   _clear() {
+    setState(() {
+      _senderStateController.setState(SenderStateEnum.initial);
+    });
     _publicKey = null;
     _privateKey = null;
     _fileBytes = [];
     _selectedFile = null;
+  }
+
+  @override
+  void dispose() {
+    _connectionClient.disconnect();
+    super.dispose();
   }
 }

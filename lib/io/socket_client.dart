@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:signalr_netcore/json_hub_protocol.dart';
@@ -71,12 +74,17 @@ class ConnectionClient {
   bool get isConnected => _connection?.state == HubConnectionState.Connected;
 
   Future<void> connect() async {
-    if (_connection?.state != HubConnectionState.Disconnected) return;
-    await _connection?.start();
-    _log("IsConnected : ${_connection?.state == HubConnectionState.Connected}");
-    if (_connection?.state == HubConnectionState.Connected) {
-      _listenEvents();
-      _eventNotifier.onConnected();
+    try {
+      if (_connection?.state != HubConnectionState.Disconnected) return;
+      await _connection?.start();
+      _log(
+          "IsConnected : ${_connection?.state == HubConnectionState.Connected}");
+      if (_connection?.state == HubConnectionState.Connected) {
+        _listenEvents();
+        _eventNotifier.onConnected();
+      }
+    } catch (e) {
+      logMessage(e.toString());
     }
   }
 
@@ -89,6 +97,46 @@ class ConnectionClient {
   }
 
   _log(dynamic message) => logMessage(message);
+
+  Future<void> downloadFile(String fileId, String savePath,
+      {required Function(Uint8List bytes, String fileName) onSuccess}) async {
+    try {
+      Response response = await dio.get(
+        "Files/GetFile?fileId=$fileId",
+        options: Options(
+          responseType: ResponseType.stream,
+        ),
+      );
+
+      logMessage(response.headers);
+      String fileName = 'default_file_name';
+      if (response.headers['content-disposition'] != null) {
+        final String headerValue =
+            response.headers['content-disposition']!.first;
+        const String pattern = 'filename*=utf-8' '';
+        fileName = Uri.decodeFull(headerValue
+                .substring(headerValue.indexOf(pattern) + pattern.length + 2))
+            .split(" ")[0]
+            .replaceAll(";", "")
+            .replaceAll("name=", "")
+            .trim();
+      }
+      File file = File('$savePath/$fileName');
+      var raf = file.openSync(mode: FileMode.write);
+
+      logMessage("File name : $fileName");
+      response.data.stream.listen((data) {
+        logMessage("Writing : $data");
+        raf.writeFromSync(data);
+      }).onDone(() async {
+        await raf.close();
+        onSuccess.call(file.readAsBytesSync(), fileName);
+        logMessage('Download complete: $fileName');
+      });
+    } catch (e) {
+      logMessage('Download failed: $e');
+    }
+  }
 }
 
 abstract class BaseEventListeners {

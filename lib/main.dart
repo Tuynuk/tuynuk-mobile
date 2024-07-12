@@ -49,10 +49,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  ECPrivateKey? _privateKey;
-  ECPublicKey? _publicKey;
-  Uint8List? _sharedKey;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,22 +60,22 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Button(
-                  onTap: () async {
+                ElevatedButton(
+                  onPressed: () {
                     Navigator.pushNamed(context, "/send");
                   },
-                  child: const Icon(
-                    Icons.upload,
-                    color: Colors.white,
+                  child: const Text(
+                    "Send file",
+                    style: TextStyle(fontFamily: "Hack"),
                   ),
                 ),
-                Button(
-                  onTap: () async {
+                ElevatedButton(
+                  onPressed: () {
                     Navigator.pushNamed(context, "/receive");
                   },
-                  child: const Icon(
-                    Icons.download,
-                    color: Colors.white,
+                  child: const Text(
+                    "Receive file",
+                    style: TextStyle(fontFamily: "Hack"),
                   ),
                 ),
               ],

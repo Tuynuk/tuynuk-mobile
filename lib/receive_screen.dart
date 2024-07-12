@@ -27,7 +27,6 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     implements ReceiverListeners {
   late ConnectionClient _connectionClient;
   ECPrivateKey? _privateKey;
-  ECPublicKey? _publicKey;
   Uint8List? _sharedKey;
 
   @override
@@ -64,7 +63,6 @@ class _ReceiveScreenState extends State<ReceiveScreen>
 
     if (_connectionClient.isConnected) {
       final keyPair = AppCrypto.generateECKeyPair();
-      _publicKey = keyPair.publicKey;
       _privateKey = keyPair.privateKey;
       _connectionClient
           .createSession(AppCrypto.encodeECPublicKey(keyPair.publicKey));
@@ -92,24 +90,25 @@ class _ReceiveScreenState extends State<ReceiveScreen>
 
   @override
   Future<void> onFileReceived(String fileId) async {
-    final file =
-        File("${(await getApplicationCacheDirectory()).path}/$fileId.pdf");
-    final downloaded = await _connectionClient.dio
-        .download("Files/GetFile?fileId=$fileId", file.path);
-    final decBytes = AppCrypto.decryptAES(file.readAsBytesSync(), _sharedKey!);
+    final path = File((await getApplicationCacheDirectory()).path);
 
-    file.writeAsBytesSync(decBytes);
-    logMessage("File saved : $downloaded");
-
-    Share.shareXFiles([
-      XFile(file.path),
-    ]);
-    _clear();
-    await _connectionClient.disconnect();
+    _connectionClient.downloadFile(fileId, path.path,
+        onSuccess: (bytes, fileName) async {
+      final decBytes = AppCrypto.decryptAES(bytes, _sharedKey!);
+      _clear();
+      final dec = File(
+          "${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName");
+      dec.writeAsBytesSync(decBytes);
+      await _connectionClient.disconnect();
+      Share.shareXFiles([
+        XFile(dec.path),
+      ]).then((value) {
+        dec.delete(recursive: true);
+      });
+    });
   }
 
   _clear() {
-    _publicKey = null;
     _privateKey = null;
   }
 }
