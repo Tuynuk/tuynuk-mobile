@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -94,7 +96,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
 
     _connectionClient.downloadFile(fileId, path.path,
         onSuccess: (bytes, fileName) async {
-      final decBytes = AppCrypto.decryptAES(bytes, _sharedKey!);
+      final decBytes = await AppCrypto.decryptAESInIsolate(bytes, _sharedKey!);
       _clear();
       final dec = File(
           "${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName");

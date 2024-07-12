@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -32,6 +33,17 @@ class AppCrypto {
     return Uint8List.fromList(iv + encrypted);
   }
 
+  static Future<Uint8List> decryptAESInIsolate(Uint8List bytes, Uint8List sharedKey) async {
+    final receivePort = ReceivePort();
+    final isolate = await Isolate.spawn(
+      _isolateEntry,
+      _IsolateData(bytes, sharedKey, receivePort.sendPort),
+    );
+
+    final result = await receivePort.first as Uint8List;
+    isolate.kill(priority: Isolate.immediate);
+    return result;
+  }
   static Uint8List decryptAES(Uint8List ciphertext, Uint8List key) {
     final iv = ciphertext.sublist(0, 16);
     final encrypted = ciphertext.sublist(16);
@@ -138,4 +150,17 @@ class AppCrypto {
 
     return Uint8List.fromList(byteList);
   }
+}
+
+void _isolateEntry(_IsolateData data) {
+  final decryptedBytes = AppCrypto.decryptAES(data.bytes, data.sharedKey);
+  data.sendPort.send(decryptedBytes);
+}
+
+class _IsolateData {
+  final Uint8List bytes;
+  final Uint8List sharedKey;
+  final SendPort sendPort;
+
+  _IsolateData(this.bytes, this.sharedKey, this.sendPort);
 }
