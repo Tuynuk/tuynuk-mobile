@@ -125,7 +125,7 @@ class SnappableState extends State<Snappable>
     //create an image for every bucket
     List<image.Image> images = List<image.Image>.generate(
       widget.numberOfBuckets,
-      (i) => image.Image(fullImage.width, fullImage.height),
+      (i) => image.Image(width: fullImage.width, height: fullImage.height),
     );
 
     //for every line of pixels
@@ -144,7 +144,7 @@ class SnappableState extends State<Snappable>
       //for every pixel in a line
       for (int x = 0; x < fullImage.width; x++) {
         //get the pixel from fullImage
-        int pixel = fullImage.getPixel(x, y);
+        image.Pixel pixel = fullImage.getPixel(x, y);
         //choose a bucket for a pixel
         int imageIndex = _pickABucket(weights, sumOfWeights);
         //set the pixel from chosen bucket

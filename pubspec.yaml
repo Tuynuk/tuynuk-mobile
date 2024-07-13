@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  image: ^3.2.0
+  image: ^4.0.15
   pointycastle: ^3.9.1
   url_launcher: ^6.3.0
   file_picker: ^8.0.6
@@ -38,6 +38,7 @@ dependencies:
   path_provider: ^2.0.1
   dio: ^5.5.0+1
   share_plus: ^9.0.0
+  flutter_launcher_icons: ^0.13.1
   signalr_netcore:
     git:
       url: https://github.com/xaldarof/signalr_client_plus.git
@@ -72,6 +73,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/fonts/
+    - assets/images/
 
     # An image asset can refer to one or more resolution-specific "variants", see
     # https://flutter.dev/assets-and-images/#resolution-aware
@@ -89,3 +91,10 @@ flutter:
     - family: Hack
       fonts:
         - asset: assets/fonts/Hacker-Black.ttf
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo_dark.png"
+  min_sdk_android: 21
