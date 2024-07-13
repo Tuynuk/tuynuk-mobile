@@ -110,7 +110,8 @@ class ConnectionClient {
   _log(dynamic message) => logMessage(message);
 
   Future<void> downloadFile(String fileId, String savePath,
-      {required Function(Uint8List bytes, String fileName) onSuccess}) async {
+      {required Function(Uint8List bytes, String fileName) onSuccess,
+      required Function() onError}) async {
     try {
       Response response = await dio.get(
         "Files/GetFile?fileId=$fileId",
@@ -145,6 +146,7 @@ class ConnectionClient {
         logMessage('Download complete: $fileName');
       });
     } catch (e) {
+      onError.call();
       logMessage('Download failed: $e');
     }
   }

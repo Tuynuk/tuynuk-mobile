@@ -165,6 +165,11 @@ class AppCrypto {
 
     return Uint8List.fromList(byteList);
   }
+
+  static Uint8List sha256Digest(Uint8List input) {
+    final Digest sha256 = SHA256Digest();
+    return sha256.process(Uint8List.fromList(input));
+  }
 }
 
 void _encryptIsolateEntry(_IsolateData data) {

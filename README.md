@@ -33,7 +33,7 @@ need a secure and ephemeral file transfer solution.
    ```bash
    git clone https://github.com/xaldarof/tuynuk.git
 
-2. Tuynuk:
+2. Get dependencies:
    ```bash
    flutter pub get
 

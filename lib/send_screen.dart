@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:convert/convert.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,10 +11,14 @@ import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/models/sender_state_enum.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
+import 'package:safe_file_sender/utils/string_utils.dart';
+import 'package:safe_file_sender/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/widgets/scale_tap.dart';
 import 'package:safe_file_sender/widgets/snap_effect.dart';
 
 class SendScreen extends StatefulWidget {
+  const SendScreen({super.key});
+
   @override
   State<SendScreen> createState() => _SendScreenState();
 }
@@ -25,6 +30,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   ECPrivateKey? _privateKey;
   ECPublicKey? _publicKey;
   Uint8List? _sharedKey;
+  String? _sharedKeyDigest;
   List<int> _fileBytes = [];
 
   @override
@@ -121,13 +127,14 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
             ),
             ScaleTap(
               onPressed: () async {
-                if (_selectedFile != null) return;
-                final files =
-                    (await FilePicker.platform.pickFiles())?.files ?? [];
-                final file = files.first;
-                _selectedFile = File(file.path ?? "");
-                _fileBytes = _selectedFile!.readAsBytesSync().toList();
-                setState(() {});
+                if (_senderStateController.canSend) {
+                  final files =
+                      (await FilePicker.platform.pickFiles())?.files ?? [];
+                  final file = files.first;
+                  _selectedFile = File(file.path ?? "");
+                  _fileBytes = _selectedFile!.readAsBytesSync().toList();
+                  setState(() {});
+                }
               },
               child: Snappable(
                 key: _key,
@@ -192,6 +199,13 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                 ),
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.all(6),
+            ),
+            if (_sharedKeyDigest != null)
+              EncryptionKeyWidget(
+                keyMatrix: StringUtils.splitByLength(_sharedKeyDigest!, 2),
+              )
           ],
         ),
       ),
@@ -245,6 +259,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _sharedKey = sharedKey;
+    _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
 
     setState(() {
       _senderStateController.setState(SenderStateEnum.encryptionFile);
@@ -275,6 +290,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     setState(() {
       _senderStateController.setState(SenderStateEnum.initial);
     });
+    _sharedKeyDigest = null;
     _textEditingController.clear();
     _publicKey = null;
     _privateKey = null;

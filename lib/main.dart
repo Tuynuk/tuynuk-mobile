@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pointycastle/ecc/api.dart';
-import 'package:pointycastle/impl.dart';
 import 'package:safe_file_sender/receive_screen.dart';
 import 'package:safe_file_sender/send_screen.dart';
-import 'package:safe_file_sender/widgets/button.dart';
 import 'package:safe_file_sender/widgets/scale_tap.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -19,11 +16,11 @@ class SafeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       routes: {
-        "/send": (context) => SendScreen(),
-        "/receive": (context) => ReceiveScreen(),
+        "/send": (context) => const SendScreen(),
+        "/receive": (context) => const ReceiveScreen(),
       },
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Tuynuk',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: false,

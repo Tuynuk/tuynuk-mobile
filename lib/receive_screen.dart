@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,6 +9,8 @@ import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/dialogs/receive_bottom_sheet_dialog.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/models/receiver_state_enum.dart';
+import 'package:safe_file_sender/utils/string_utils.dart';
+import 'package:safe_file_sender/widgets/encrypted_key_matrix.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'crypto/crypto.dart';
@@ -26,6 +29,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
   ECPrivateKey? _privateKey;
   Uint8List? _sharedKey;
   String? _identifier;
+  String? _sharedKeyDigest;
 
   @override
   void initState() {
@@ -152,6 +156,13 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                   ),
                 ],
               ),
+            const Padding(
+              padding: EdgeInsets.all(6),
+            ),
+            if (_sharedKeyDigest != null)
+              EncryptionKeyWidget(
+                keyMatrix: StringUtils.splitByLength(_sharedKeyDigest!, 2),
+              )
           ],
         ),
       ),
@@ -207,6 +218,8 @@ class _ReceiveScreenState extends State<ReceiveScreen>
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _sharedKey = sharedKey;
+    _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
+    setState(() {});
   }
 
   @override
@@ -247,11 +260,14 @@ class _ReceiveScreenState extends State<ReceiveScreen>
       ]).then((value) {
         dec.delete(recursive: true);
       });
+    }, onError: () {
+      _clear();
     });
   }
 
   _clear() {
     setState(() {
+      _sharedKeyDigest = null;
       _receiverStateController.setState(ReceiverStateEnum.initial);
       _privateKey = null;
       _identifier = null;
