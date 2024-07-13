@@ -97,11 +97,12 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
             ElevatedButton(
               onPressed: () {
                 if (_textEditingController.text.trim().isNotEmpty &&
-                    _selectedFile != null) {
+                    _selectedFile != null &&
+                    _senderStateController.canSend) {
                   _send();
                 }
               },
-              child: _senderStateController.state != SenderStateEnum.initial
+              child: (!_senderStateController.canSend)
                   ? const SizedBox(
                       width: 12,
                       height: 12,
@@ -224,7 +225,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
           AppCrypto.encodeECPublicKey(_publicKey!));
     } else {
       setState(() {
-        _senderStateController.setState(SenderStateEnum.failed);
+        _senderStateController.setState(SenderStateEnum.connectionError);
       });
     }
   }

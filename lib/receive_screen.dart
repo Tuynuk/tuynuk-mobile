@@ -73,9 +73,11 @@ class _ReceiveScreenState extends State<ReceiveScreen>
             ),
             ElevatedButton(
               onPressed: () {
-                _receive();
+                if (_receiverStateController.canReceive) {
+                  _receive();
+                }
               },
-              child: _receiverStateController.state != ReceiverStateEnum.initial
+              child: (!_receiverStateController.canReceive)
                   ? const SizedBox(
                       width: 12,
                       height: 12,
@@ -176,6 +178,10 @@ class _ReceiveScreenState extends State<ReceiveScreen>
       });
       _connectionClient
           .createSession(AppCrypto.encodeECPublicKey(keyPair.publicKey));
+    } else {
+      setState(() {
+        _receiverStateController.setState(ReceiverStateEnum.connectionError);
+      });
     }
   }
 

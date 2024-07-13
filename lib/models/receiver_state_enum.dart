@@ -6,6 +6,7 @@ enum ReceiverStateEnum {
   initial("Initial"),
   connection("Connecting to the server"),
   connected("Connected"),
+  connectionError("Connection error"),
   identifierGenerated("Identifier generated"),
   creatingSession("Creating session"),
   encryptionFile("Encrypting file"),
@@ -23,6 +24,10 @@ enum ReceiverStateEnum {
 
 class ReceiverStateController {
   ReceiverStateEnum _currentState = ReceiverStateEnum.initial;
+
+  bool get canReceive =>
+      _currentState == ReceiverStateEnum.connectionError ||
+      _currentState == ReceiverStateEnum.initial;
 
   ReceiverStateEnum get state => _currentState;
 

@@ -6,6 +6,7 @@ enum SenderStateEnum {
   sendingFile("Sending encrypted file"),
   initial("Initial"),
   connection("Connecting to the server"),
+  connectionError("Connection error"),
   connected("Connected"),
   joining("Joining to the session"),
   encryptionFile("Encrypting file"),
@@ -22,6 +23,10 @@ class SenderStateController {
   SenderStateEnum _currentState = SenderStateEnum.initial;
 
   SenderStateEnum get state => _currentState;
+
+  bool get canSend =>
+      _currentState == SenderStateEnum.connectionError ||
+      _currentState == SenderStateEnum.initial;
 
   List<SenderStateEnum> get history => _history;
   final List<Function> _listeners = [];

@@ -33,12 +33,22 @@ class ConnectionClient {
   }
 
   Future<void> joinSession(String identifier, String publicKey) async {
-    _connection?.send("JoinSession", args: [
-      {
-        "identifier": identifier,
-        "publicKey": publicKey,
-      }
-    ]);
+    try {
+      _connection?.send("JoinSession", args: [
+        {
+          "identifier": identifier,
+          "publicKey": publicKey,
+        }
+      ]).onError((value, trace) {
+        _log(trace.toString());
+      }).catchError((onError) {
+        _log(onError);
+      }).then((value) {
+        logMessage("Join session end");
+      });
+    } catch (e) {
+      logMessage(e.toString());
+    }
   }
 
   Future<bool> sendFile(
