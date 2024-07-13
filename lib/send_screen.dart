@@ -77,136 +77,138 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
       backgroundColor: Colors.black,
       body: Container(
         margin: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(24),
-            ),
-            TextField(
-              style: const TextStyle(fontFamily: "Hack", color: Colors.white),
-              controller: _textEditingController,
-              decoration: InputDecoration(
-                hintStyle:
-                    const TextStyle(color: Colors.white54, fontFamily: "Hack"),
-                hintText: "Input session id",
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.white60)),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(24),
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(12),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_textEditingController.text.trim().isNotEmpty &&
-                    _selectedFile != null &&
-                    _senderStateController.canSend) {
-                  _send();
-                }
-              },
-              child: (!_senderStateController.canSend)
-                  ? const SizedBox(
-                      width: 12,
-                      height: 12,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      "Send",
-                      style: TextStyle(fontFamily: "Hack"),
-                    ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16),
-            ),
-            ScaleTap(
-              onPressed: () async {
-                if (_senderStateController.canSend) {
-                  final files =
-                      (await FilePicker.platform.pickFiles())?.files ?? [];
-                  final file = files.first;
-                  _selectedFile = File(file.path ?? "");
-                  _fileBytes = _selectedFile!.readAsBytesSync().toList();
-                  setState(() {});
-                }
-              },
-              child: Snappable(
-                key: _key,
-                onSnapped: () {
-                  _clear();
+              TextField(
+                style: const TextStyle(fontFamily: "Hack", color: Colors.white),
+                controller: _textEditingController,
+                decoration: InputDecoration(
+                  hintStyle:
+                      const TextStyle(color: Colors.white54, fontFamily: "Hack"),
+                  hintText: "Input session id",
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.white60)),
+                  border:
+                      OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.all(12),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (_textEditingController.text.trim().isNotEmpty &&
+                      _selectedFile != null &&
+                      _senderStateController.canSend) {
+                    _send();
+                  }
                 },
-                child: Container(
-                  height: 32,
-                  alignment: Alignment.center,
-                  child: _selectedFile == null
-                      ? const Text(
-                          "Select file",
-                          style: TextStyle(
-                              color: Colors.white, fontFamily: "Hack"),
-                        )
-                      : ListView.builder(
-                          itemExtent: 34,
-                          itemCount: (_fileBytes.length * .3).toInt(),
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (e, index) {
-                            final bit = _fileBytes[index]
-                                .toRadixString(2)
-                                .padLeft(8, '0');
-                            return Text(
-                              bit,
-                              style: const TextStyle(color: Colors.white),
-                            );
-                          },
+                child: (!_senderStateController.canSend)
+                    ? const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
                         ),
+                      )
+                    : const Text(
+                        "Send",
+                        style: TextStyle(fontFamily: "Hack"),
+                      ),
+              ),
+              const Padding(
+                padding: EdgeInsets.all(16),
+              ),
+              ScaleTap(
+                onPressed: () async {
+                  if (_senderStateController.canSend) {
+                    final files =
+                        (await FilePicker.platform.pickFiles())?.files ?? [];
+                    final file = files.first;
+                    _selectedFile = File(file.path ?? "");
+                    _fileBytes = _selectedFile!.readAsBytesSync().toList();
+                    setState(() {});
+                  }
+                },
+                child: Snappable(
+                  key: _key,
+                  onSnapped: () {
+                    _clear();
+                  },
+                  child: Container(
+                    height: 32,
+                    alignment: Alignment.center,
+                    child: _selectedFile == null
+                        ? const Text(
+                            "Select file",
+                            style: TextStyle(
+                                color: Colors.white, fontFamily: "Hack"),
+                          )
+                        : ListView.builder(
+                            itemExtent: 34,
+                            itemCount: (_fileBytes.length * .3).toInt(),
+                            scrollDirection: Axis.horizontal,
+                            itemBuilder: (e, index) {
+                              final bit = _fileBytes[index]
+                                  .toRadixString(2)
+                                  .padLeft(8, '0');
+                              return Text(
+                                bit,
+                                style: const TextStyle(color: Colors.white),
+                              );
+                            },
+                          ),
+                  ),
                 ),
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white12,
+              const Padding(
+                padding: EdgeInsets.all(16),
               ),
-              height: 300,
-              width: MediaQuery.sizeOf(context).width,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ..._senderStateController.history.map(
-                      (e) => Container(
-                        margin: const EdgeInsets.only(top: 4, left: 4),
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          e.value,
-                          style: const TextStyle(
-                              color: Colors.white60,
-                              fontFamily: "Hack",
-                              fontSize: 8),
-                          textAlign: TextAlign.start,
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white12,
+                ),
+                height: 300,
+                width: MediaQuery.sizeOf(context).width,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ..._senderStateController.history.map(
+                        (e) => Container(
+                          margin: const EdgeInsets.only(top: 4, left: 4),
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            e.value,
+                            style: const TextStyle(
+                                color: Colors.white60,
+                                fontFamily: "Hack",
+                                fontSize: 8),
+                            textAlign: TextAlign.start,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(6),
-            ),
-            if (_sharedKeyDigest != null)
-              EncryptionKeyWidget(
-                keyMatrix: StringUtils.splitByLength(_sharedKeyDigest!, 2),
-              )
-          ],
+              const Padding(
+                padding: EdgeInsets.all(6),
+              ),
+              if (_sharedKeyDigest != null)
+                EncryptionKeyWidget(
+                  keyMatrix: StringUtils.splitByLength(_sharedKeyDigest!, 2),
+                )
+            ],
+          ),
         ),
       ),
     );

@@ -69,101 +69,103 @@ class _ReceiveScreenState extends State<ReceiveScreen>
       backgroundColor: Colors.black,
       body: Container(
         margin: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(12),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (_receiverStateController.canReceive) {
-                  _receive();
-                }
-              },
-              child: (!_receiverStateController.canReceive)
-                  ? const SizedBox(
-                      width: 12,
-                      height: 12,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      "Create session",
-                      style: TextStyle(fontFamily: "Hack"),
-                    ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white12,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(12),
               ),
-              height: 300,
-              width: MediaQuery.sizeOf(context).width,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ..._receiverStateController.history.map(
-                      (e) => Container(
-                        margin: const EdgeInsets.only(top: 4, left: 4),
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          e.value,
-                          style: const TextStyle(
-                              color: Colors.white60,
-                              fontFamily: "Hack",
-                              fontSize: 8),
-                          textAlign: TextAlign.start,
+              ElevatedButton(
+                onPressed: () {
+                  if (_receiverStateController.canReceive) {
+                    _receive();
+                  }
+                },
+                child: (!_receiverStateController.canReceive)
+                    ? const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Create session",
+                        style: TextStyle(fontFamily: "Hack"),
+                      ),
+              ),
+              const Padding(
+                padding: EdgeInsets.all(16),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white12,
+                ),
+                height: 300,
+                width: MediaQuery.sizeOf(context).width,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ..._receiverStateController.history.map(
+                        (e) => Container(
+                          margin: const EdgeInsets.only(top: 4, left: 4),
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            e.value,
+                            style: const TextStyle(
+                                color: Colors.white60,
+                                fontFamily: "Hack",
+                                fontSize: 8),
+                            textAlign: TextAlign.start,
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.all(24),
+              ),
+              if (_identifier != null)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        if (_identifier == null) return;
+                        Clipboard.setData(ClipboardData(text: _identifier!));
+                      },
+                      child: Text(
+                        _identifier!,
+                        style: const TextStyle(
+                            fontFamily: "Hack",
+                            color: Colors.white,
+                            fontSize: 20),
+                      ),
+                    ),
+                    const Text(
+                      "Tap to copy",
+                      style: TextStyle(
+                          fontFamily: "Hack",
+                          color: Colors.white54,
+                          fontSize: 12),
                     ),
                   ],
                 ),
+              const Padding(
+                padding: EdgeInsets.all(6),
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(24),
-            ),
-            if (_identifier != null)
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      if (_identifier == null) return;
-                      Clipboard.setData(ClipboardData(text: _identifier!));
-                    },
-                    child: Text(
-                      _identifier!,
-                      style: const TextStyle(
-                          fontFamily: "Hack",
-                          color: Colors.white,
-                          fontSize: 20),
-                    ),
-                  ),
-                  const Text(
-                    "Tap to copy",
-                    style: TextStyle(
-                        fontFamily: "Hack",
-                        color: Colors.white54,
-                        fontSize: 12),
-                  ),
-                ],
-              ),
-            const Padding(
-              padding: EdgeInsets.all(6),
-            ),
-            if (_sharedKeyDigest != null)
-              EncryptionKeyWidget(
-                keyMatrix: StringUtils.splitByLength(_sharedKeyDigest!, 2),
-              )
-          ],
+              if (_sharedKeyDigest != null)
+                EncryptionKeyWidget(
+                  keyMatrix: StringUtils.splitByLength(_sharedKeyDigest!, 2),
+                )
+            ],
+          ),
         ),
       ),
     );
