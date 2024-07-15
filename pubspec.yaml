@@ -38,7 +38,6 @@ dependencies:
   path_provider: ^2.0.1
   dio: ^5.5.0+1
   share_plus: ^9.0.0
-  flutter_launcher_icons: ^0.13.1
   signalr_netcore:
     git:
       url: https://github.com/xaldarof/signalr_client_plus.git
@@ -51,6 +50,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -97,4 +97,4 @@ flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/images/logo_dark.png"
-  min_sdk_android: 21
+  min_sdk_android: 24
