@@ -241,7 +241,19 @@ class _ReceiveScreenState extends State<ReceiveScreen>
       _receiverStateController.setState(ReceiverStateEnum.downloadingFile);
     });
     _connectionClient.downloadFile(fileId, path.path,
-        onSuccess: (bytes, fileName) async {
+        onSuccess: (bytes, fileName, hmac) async {
+      setState(() {
+        _receiverStateController.setState(ReceiverStateEnum.checkingHmac);
+        final hmacLocal =
+            hex.encode(AppCrypto.generateHMAC(_sharedKey!, bytes));
+        if (hmacLocal == hmac) {
+          logMessage("HMAC check success");
+        } else {
+          logMessage("HMAC check failed");
+          _connectionClient.disconnect();
+          return;
+        }
+      });
       setState(() {
         _receiverStateController.setState(ReceiverStateEnum.decryptionFile);
       });
@@ -253,6 +265,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
         _receiverStateController.setState(ReceiverStateEnum.writingFile);
       });
       dec.writeAsBytesSync(decBytes);
+
       await _connectionClient.disconnect();
       _clear();
       Share.shareXFiles([

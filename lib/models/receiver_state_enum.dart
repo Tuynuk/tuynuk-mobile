@@ -15,6 +15,9 @@ enum ReceiverStateEnum {
   fileIdReceived("File id received"),
   decryptionFile("Decryption file"),
   downloadingFile("Downloading file"),
+  checkingHmac("Checking data integrity"),
+  hmacError("HMAC error"),
+  hmacSuccess("HMAC success"),
   clearing("Clearing");
 
   const ReceiverStateEnum(this.value);

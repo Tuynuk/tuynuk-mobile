@@ -88,14 +88,14 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                 style: const TextStyle(fontFamily: "Hack", color: Colors.white),
                 controller: _textEditingController,
                 decoration: InputDecoration(
-                  hintStyle:
-                      const TextStyle(color: Colors.white54, fontFamily: "Hack"),
+                  hintStyle: const TextStyle(
+                      color: Colors.white54, fontFamily: "Hack"),
                   hintText: "Input session id",
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: Colors.white60)),
-                  border:
-                      OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const Padding(
@@ -277,12 +277,22 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     encFile.writeAsBytesSync(encrypted);
 
     setState(() {
+      _senderStateController.setState(SenderStateEnum.generatingHmac);
+    });
+
+    final hmac = hex
+        .encode(AppCrypto.generateHMAC(_sharedKey!, encFile.readAsBytesSync()));
+
+    setState(() {
       _senderStateController.setState(SenderStateEnum.sendingFile);
     });
+
     final sent = await _connectionClient.sendFile(
-        encFile.path,
-        FileUtils.fileName(_selectedFile!.path),
-        _textEditingController.text.toUpperCase().trim());
+      encFile.path,
+      FileUtils.fileName(_selectedFile!.path),
+      _textEditingController.text.toUpperCase().trim(),
+      hmac,
+    );
 
     logMessage("Sent : $sent");
     _key.currentState?.snap();
