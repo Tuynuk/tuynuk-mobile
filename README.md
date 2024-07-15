@@ -88,5 +88,4 @@ users to focus on file transfer without worrying about cryptographic details.
 
 We welcome contributions to Tuynuk! Please submit pull requests and open issues to help
 improve the application.
-g
 
