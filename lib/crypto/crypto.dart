@@ -171,7 +171,7 @@ class AppCrypto {
     return sha256.process(Uint8List.fromList(input));
   }
 
-  Uint8List generateHMAC(Uint8List key, Uint8List message) {
+  static Uint8List generateHMAC(Uint8List key, Uint8List message) {
     var hmacSha256 = HMac(SHA256Digest(), 64);
     hmacSha256.init(KeyParameter(key));
 
