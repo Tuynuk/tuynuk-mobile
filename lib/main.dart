@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/receive_screen.dart';
 import 'package:safe_file_sender/send_screen.dart';
 import 'package:safe_file_sender/widgets/scale_tap.dart';
@@ -16,7 +20,9 @@ class SafeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       routes: {
-        "/send": (context) => const SendScreen(),
+        "/send": (context) => SendScreen(
+            sharedFile:
+                ModalRoute.of(context)?.settings.arguments as SharedMediaFile?),
         "/receive": (context) => const ReceiveScreen(),
       },
       debugShowCheckedModeBanner: false,
@@ -25,25 +31,56 @@ class SafeApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: false,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const TuynukHomePage(title: 'Tuynuk'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class TuynukHomePage extends StatefulWidget {
+  const TuynukHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<TuynukHomePage> createState() => _TuynukHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _TuynukHomePageState extends State<TuynukHomePage> {
+  late StreamSubscription _sub;
+
   @override
   void initState() {
+    _handleSharingIntent();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _sub.cancel();
+    super.dispose();
+  }
+
+  Future<void> _handleSharingIntent() async {
+    try {
+      _sub = ReceiveSharingIntent.instance.getMediaStream().listen((value) {
+        if (!Navigator.canPop(context) && value.isNotEmpty) {
+          Navigator.pushNamed(context, "/send", arguments: value.first);
+          ReceiveSharingIntent.instance.reset();
+        }
+        logMessage(value.map((f) => f.toMap()));
+      }, onError: (err) {
+        logMessage(err);
+      });
+      ReceiveSharingIntent.instance.getInitialMedia().then((value) {
+        if (value.isNotEmpty) {
+          Navigator.pushNamed(context, "/send", arguments: value.first);
+          ReceiveSharingIntent.instance.reset();
+        }
+      });
+    } catch (e) {
+      // Handle exceptions
+    }
   }
 
   @override

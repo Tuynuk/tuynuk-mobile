@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/crypto/crypto.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
@@ -17,7 +18,9 @@ import 'package:safe_file_sender/widgets/scale_tap.dart';
 import 'package:safe_file_sender/widgets/snap_effect.dart';
 
 class SendScreen extends StatefulWidget {
-  const SendScreen({super.key});
+  final SharedMediaFile? sharedFile;
+
+  const SendScreen({super.key, required this.sharedFile});
 
   @override
   State<SendScreen> createState() => _SendScreenState();
@@ -35,6 +38,10 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
   @override
   void initState() {
+    if (widget.sharedFile != null) {
+      _selectedFile = File(widget.sharedFile!.path);
+      _fileBytes = _selectedFile!.readAsBytesSync();
+    }
     _connectionClient = ConnectionClient(this);
 
     _senderStateController.onStateChanged((state) async {
@@ -88,14 +95,14 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                 style: const TextStyle(fontFamily: "Hack", color: Colors.white),
                 controller: _textEditingController,
                 decoration: InputDecoration(
-                  hintStyle:
-                      const TextStyle(color: Colors.white54, fontFamily: "Hack"),
+                  hintStyle: const TextStyle(
+                      color: Colors.white54, fontFamily: "Hack"),
                   hintText: "Input session id",
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: Colors.white60)),
-                  border:
-                      OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const Padding(
@@ -277,12 +284,22 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     encFile.writeAsBytesSync(encrypted);
 
     setState(() {
+      _senderStateController.setState(SenderStateEnum.generatingHmac);
+    });
+
+    final hmac = hex
+        .encode(AppCrypto.generateHMAC(_sharedKey!, encFile.readAsBytesSync()));
+
+    setState(() {
       _senderStateController.setState(SenderStateEnum.sendingFile);
     });
+
     final sent = await _connectionClient.sendFile(
-        encFile.path,
-        FileUtils.fileName(_selectedFile!.path),
-        _textEditingController.text.toUpperCase().trim());
+      encFile.path,
+      FileUtils.fileName(_selectedFile!.path),
+      _textEditingController.text.toUpperCase().trim(),
+      hmac,
+    );
 
     logMessage("Sent : $sent");
     _key.currentState?.snap();

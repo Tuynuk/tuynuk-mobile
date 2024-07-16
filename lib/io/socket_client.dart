@@ -52,7 +52,7 @@ class ConnectionClient {
   }
 
   Future<bool> sendFile(
-      String filePath, String fileName, String sessionId) async {
+      String filePath, String fileName, String sessionId, String hmac) async {
     FormData data = FormData.fromMap({
       "formFile": await MultipartFile.fromFile(filePath, filename: fileName),
     });
@@ -60,6 +60,7 @@ class ConnectionClient {
     final response =
         await _dio.post("Files/UploadFile", data: data, queryParameters: {
       "sessionIdentifier": sessionId,
+      "HMAC": hmac,
     });
     return response.statusCode == 200;
   }
@@ -110,7 +111,8 @@ class ConnectionClient {
   _log(dynamic message) => logMessage(message);
 
   Future<void> downloadFile(String fileId, String savePath,
-      {required Function(Uint8List bytes, String fileName) onSuccess,
+      {required Function(Uint8List bytes, String fileName, String hmac)
+          onSuccess,
       required Function() onError}) async {
     try {
       Response response = await dio.get(
@@ -142,7 +144,8 @@ class ConnectionClient {
         raf.writeFromSync(data);
       }).onDone(() async {
         await raf.close();
-        onSuccess.call(file.readAsBytesSync(), fileName);
+        onSuccess.call(file.readAsBytesSync(), fileName,
+            response.headers.map['hmac']!.first);
         logMessage('Download complete: $fileName');
       });
     } catch (e) {

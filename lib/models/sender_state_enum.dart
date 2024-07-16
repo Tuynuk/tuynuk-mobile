@@ -12,6 +12,7 @@ enum SenderStateEnum {
   encryptionFile("Encrypting file"),
   writingFile("Writing file"),
   writingEncryptedFile("Writing encrypted file"),
+  generatingHmac("Generating HMAC"),
   clearing("Clearing");
 
   const SenderStateEnum(this.value);
