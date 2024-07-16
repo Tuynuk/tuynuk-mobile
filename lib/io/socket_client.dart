@@ -55,12 +55,12 @@ class ConnectionClient {
       String filePath, String fileName, String sessionId, String hmac) async {
     FormData data = FormData.fromMap({
       "formFile": await MultipartFile.fromFile(filePath, filename: fileName),
-      "hmac": hmac,
     });
 
     final response =
         await _dio.post("Files/UploadFile", data: data, queryParameters: {
       "sessionIdentifier": sessionId,
+      "HMAC": hmac,
     });
     return response.statusCode == 200;
   }
@@ -144,7 +144,8 @@ class ConnectionClient {
         raf.writeFromSync(data);
       }).onDone(() async {
         await raf.close();
-        onSuccess.call(file.readAsBytesSync(), fileName, response.data['hmac']);
+        onSuccess.call(file.readAsBytesSync(), fileName,
+            response.headers.map['hmac']!.first);
         logMessage('Download complete: $fileName');
       });
     } catch (e) {

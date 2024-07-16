@@ -64,17 +64,19 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
   Future<void> _handleSharingIntent() async {
     try {
       _sub = ReceiveSharingIntent.instance.getMediaStream().listen((value) {
-        if (!Navigator.canPop(context)) {
+        if (!Navigator.canPop(context) && value.isNotEmpty) {
           Navigator.pushNamed(context, "/send", arguments: value.first);
           ReceiveSharingIntent.instance.reset();
         }
         logMessage(value.map((f) => f.toMap()));
       }, onError: (err) {
-        logMessage("getIntentDataStream error: $err");
+        logMessage(err);
       });
       ReceiveSharingIntent.instance.getInitialMedia().then((value) {
-        Navigator.pushNamed(context, "/send", arguments: value.first);
-        ReceiveSharingIntent.instance.reset();
+        if (value.isNotEmpty) {
+          Navigator.pushNamed(context, "/send", arguments: value.first);
+          ReceiveSharingIntent.instance.reset();
+        }
       });
     } catch (e) {
       // Handle exceptions

@@ -244,8 +244,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
         onSuccess: (bytes, fileName, hmac) async {
       setState(() {
         _receiverStateController.setState(ReceiverStateEnum.checkingHmac);
-        final hmacLocal =
-            hex.encode(AppCrypto.generateHMAC(_sharedKey!, bytes));
+        final hmacLocal = hex.encode(AppCrypto.generateHMAC(_sharedKey!, bytes));
         if (hmacLocal == hmac) {
           logMessage("HMAC check success");
         } else {
