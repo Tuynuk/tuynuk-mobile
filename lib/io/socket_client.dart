@@ -145,7 +145,7 @@ class ConnectionClient {
       }).onDone(() async {
         await raf.close();
         onSuccess.call(file.readAsBytesSync(), fileName,
-            response.headers.map['hmac']!.first);
+            response.headers.map['HMAC']!.first);
         logMessage('Download complete: $fileName');
       });
     } catch (e) {
