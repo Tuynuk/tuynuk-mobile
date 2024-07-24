@@ -6,9 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
-import 'package:safe_file_sender/models/receiver_state_enum.dart';
+import 'package:safe_file_sender/models/state_controller.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
 import 'package:safe_file_sender/widgets/encrypted_key_matrix.dart';
+import 'package:safe_file_sender/widgets/status_logger.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'crypto/crypto.dart';
@@ -35,8 +36,8 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     super.initState();
   }
 
-  final ReceiverStateController _receiverStateController =
-      ReceiverStateController();
+  final TransferStateController _receiverStateController =
+      TransferStateController();
 
   @override
   Widget build(BuildContext context) {
@@ -97,35 +98,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
               const Padding(
                 padding: EdgeInsets.all(16),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.white12,
-                ),
-                height: 300,
-                width: MediaQuery.sizeOf(context).width,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ..._receiverStateController.history.map(
-                        (e) => Container(
-                          margin: const EdgeInsets.only(top: 4, left: 4),
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            e.value,
-                            style: const TextStyle(
-                                color: Colors.white60,
-                                fontFamily: "Hack",
-                                fontSize: 8),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              StatusLogger(controller: _receiverStateController),
               const Padding(
                 padding: EdgeInsets.all(24),
               ),
@@ -172,26 +145,26 @@ class _ReceiveScreenState extends State<ReceiveScreen>
   Future<void> _receive() async {
     setState(() {
       _receiverStateController.history.clear();
-      _receiverStateController.setState(ReceiverStateEnum.connection);
+      _receiverStateController.setState(TransferStateEnum.connection);
     });
     await _connectionClient.connect();
 
     if (!context.mounted) return;
     if (_connectionClient.isConnected) {
       setState(() {
-        _receiverStateController.setState(ReceiverStateEnum.connected);
-        _receiverStateController.setState(ReceiverStateEnum.generatingKey);
+        _receiverStateController.setState(TransferStateEnum.connected);
+        _receiverStateController.setState(TransferStateEnum.generatingKey);
       });
       final keyPair = AppCrypto.generateECKeyPair();
       _privateKey = keyPair.privateKey;
       setState(() {
-        _receiverStateController.setState(ReceiverStateEnum.creatingSession);
+        _receiverStateController.setState(TransferStateEnum.creatingSession);
       });
       _connectionClient
           .createSession(AppCrypto.encodeECPublicKey(keyPair.publicKey));
     } else {
       setState(() {
-        _receiverStateController.setState(ReceiverStateEnum.connectionError);
+        _receiverStateController.setState(TransferStateEnum.connectionError);
       });
     }
   }
@@ -212,7 +185,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     logMessage("PublicKey : $publicKey");
 
     setState(() {
-      _receiverStateController.setState(ReceiverStateEnum.sharedKeyDeriving);
+      _receiverStateController.setState(TransferStateEnum.sharedKeyDeriving);
     });
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
@@ -226,7 +199,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
   Future<void> onIdentifierReceived(String identifier) async {
     _identifier = identifier;
     setState(() {
-      _receiverStateController.setState(ReceiverStateEnum.identifierGenerated);
+      _receiverStateController.setState(TransferStateEnum.identifierGenerated);
     });
     setState(() {});
   }
@@ -234,17 +207,18 @@ class _ReceiveScreenState extends State<ReceiveScreen>
   @override
   Future<void> onFileReceived(String fileId) async {
     setState(() {
-      _receiverStateController.setState(ReceiverStateEnum.fileIdReceived);
+      _receiverStateController.setState(TransferStateEnum.fileIdReceived);
     });
     final path = File((await getApplicationCacheDirectory()).path);
     setState(() {
-      _receiverStateController.setState(ReceiverStateEnum.downloadingFile);
+      _receiverStateController.setState(TransferStateEnum.downloadingFile);
     });
     _connectionClient.downloadFile(fileId, path.path,
         onSuccess: (bytes, fileName, hmac) async {
       setState(() {
-        _receiverStateController.setState(ReceiverStateEnum.checkingHmac);
-        final hmacLocal = hex.encode(AppCrypto.generateHMAC(_sharedKey!, bytes));
+        _receiverStateController.setState(TransferStateEnum.checkingHmac);
+        final hmacLocal =
+            hex.encode(AppCrypto.generateHMAC(_sharedKey!, bytes));
         if (hmacLocal == hmac) {
           logMessage("HMAC check success");
         } else {
@@ -254,14 +228,14 @@ class _ReceiveScreenState extends State<ReceiveScreen>
         }
       });
       setState(() {
-        _receiverStateController.setState(ReceiverStateEnum.decryptionFile);
+        _receiverStateController.setState(TransferStateEnum.decryptionFile);
       });
       final decBytes = AppCrypto.decryptAES(bytes, _sharedKey!);
       _clear();
       final dec = File(
           "${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName");
       setState(() {
-        _receiverStateController.setState(ReceiverStateEnum.writingFile);
+        _receiverStateController.setState(TransferStateEnum.writingFile);
       });
       dec.writeAsBytesSync(decBytes);
 
@@ -280,7 +254,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
   _clear() {
     setState(() {
       _sharedKeyDigest = null;
-      _receiverStateController.setState(ReceiverStateEnum.initial);
+      _receiverStateController.setState(TransferStateEnum.initial);
       _privateKey = null;
       _identifier = null;
     });

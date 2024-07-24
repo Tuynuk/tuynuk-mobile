@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/receive_screen.dart';
@@ -9,7 +12,9 @@ import 'package:safe_file_sender/send_screen.dart';
 import 'package:safe_file_sender/widgets/scale_tap.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FlutterDownloader.initialize(debug: kDebugMode);
   runApp(const SafeApp());
 }
 
@@ -63,6 +68,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
 
   Future<void> _handleSharingIntent() async {
     try {
+      if (!(Platform.isAndroid || Platform.isIOS)) return;
       _sub = ReceiveSharingIntent.instance.getMediaStream().listen((value) {
         if (!Navigator.canPop(context) && value.isNotEmpty) {
           Navigator.pushNamed(context, "/send", arguments: value.first);

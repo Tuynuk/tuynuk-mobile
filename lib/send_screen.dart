@@ -10,12 +10,13 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/crypto/crypto.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
-import 'package:safe_file_sender/models/sender_state_enum.dart';
+import 'package:safe_file_sender/models/state_controller.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
 import 'package:safe_file_sender/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/widgets/scale_tap.dart';
 import 'package:safe_file_sender/widgets/snap_effect.dart';
+import 'package:safe_file_sender/widgets/status_logger.dart';
 
 class SendScreen extends StatefulWidget {
   final SharedMediaFile? sharedFile;
@@ -45,7 +46,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     _connectionClient = ConnectionClient(this);
 
     _senderStateController.onStateChanged((state) async {
-      if (state == SenderStateEnum.failed) {
+      if (state == TransferStateEnum.failed) {
         _connectionClient.disconnect();
       }
     });
@@ -53,7 +54,8 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   }
 
   final TextEditingController _textEditingController = TextEditingController();
-  final SenderStateController _senderStateController = SenderStateController();
+  final TransferStateController _senderStateController =
+      TransferStateController();
 
   @override
   Widget build(BuildContext context) {
@@ -138,8 +140,12 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                   if (_senderStateController.canSend) {
                     final files =
                         (await FilePicker.platform.pickFiles())?.files ?? [];
-                    final file = files.first;
-                    _selectedFile = File(file.path ?? "");
+                    if (files.isEmpty) return;
+                    final file = File(files.first.path!);
+                    double sizeInMb = file.lengthSync() / (1024 * 1024);
+                    if (sizeInMb > 5) return;
+                    _selectedFile = file;
+
                     _fileBytes = _selectedFile!.readAsBytesSync().toList();
                     setState(() {});
                   }
@@ -178,35 +184,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
               const Padding(
                 padding: EdgeInsets.all(16),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.white12,
-                ),
-                height: 300,
-                width: MediaQuery.sizeOf(context).width,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ..._senderStateController.history.map(
-                        (e) => Container(
-                          margin: const EdgeInsets.only(top: 4, left: 4),
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            e.value,
-                            style: const TextStyle(
-                                color: Colors.white60,
-                                fontFamily: "Hack",
-                                fontSize: 8),
-                            textAlign: TextAlign.start,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              StatusLogger(controller: _senderStateController),
               const Padding(
                 padding: EdgeInsets.all(6),
               ),
@@ -224,31 +202,31 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   Future<void> _send() async {
     setState(() {
       _senderStateController.history.clear();
-      _senderStateController.setState(SenderStateEnum.loading);
+      _senderStateController.setState(TransferStateEnum.loading);
     });
     await _connectionClient.connect();
 
     setState(() {
-      _senderStateController.setState(SenderStateEnum.connection);
+      _senderStateController.setState(TransferStateEnum.connection);
     });
     if (_connectionClient.isConnected) {
       setState(() {
-        _senderStateController.setState(SenderStateEnum.connected);
-        _senderStateController.setState(SenderStateEnum.generatingKey);
+        _senderStateController.setState(TransferStateEnum.connected);
+        _senderStateController.setState(TransferStateEnum.generatingKey);
       });
       final pair = AppCrypto.generateECKeyPair();
       _privateKey = pair.privateKey;
       _publicKey = pair.publicKey;
 
       setState(() {
-        _senderStateController.setState(SenderStateEnum.joining);
+        _senderStateController.setState(TransferStateEnum.joining);
       });
       _connectionClient.joinSession(
           _textEditingController.text.trim().toUpperCase(),
           AppCrypto.encodeECPublicKey(_publicKey!));
     } else {
       setState(() {
-        _senderStateController.setState(SenderStateEnum.connectionError);
+        _senderStateController.setState(TransferStateEnum.connectionError);
       });
     }
   }
@@ -262,7 +240,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   Future<void> onPublicKeyReceived(String publicKey) async {
     logMessage("PublicKey : $publicKey");
     setState(() {
-      _senderStateController.setState(SenderStateEnum.sharedKeyDeriving);
+      _senderStateController.setState(TransferStateEnum.sharedKeyDeriving);
     });
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
@@ -271,27 +249,27 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
 
     setState(() {
-      _senderStateController.setState(SenderStateEnum.encryptionFile);
+      _senderStateController.setState(TransferStateEnum.encryptionFile);
     });
     final encrypted =
         AppCrypto.encryptAES(_selectedFile!.readAsBytesSync(), _sharedKey!);
 
     setState(() {
-      _senderStateController.setState(SenderStateEnum.writingEncryptedFile);
+      _senderStateController.setState(TransferStateEnum.writingEncryptedFile);
     });
     final encFile = File(
         "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
     encFile.writeAsBytesSync(encrypted);
 
     setState(() {
-      _senderStateController.setState(SenderStateEnum.generatingHmac);
+      _senderStateController.setState(TransferStateEnum.generatingHmac);
     });
 
     final hmac = hex
         .encode(AppCrypto.generateHMAC(_sharedKey!, encFile.readAsBytesSync()));
 
     setState(() {
-      _senderStateController.setState(SenderStateEnum.sendingFile);
+      _senderStateController.setState(TransferStateEnum.sendingFile);
     });
 
     final sent = await _connectionClient.sendFile(
@@ -307,7 +285,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
   _clear() {
     setState(() {
-      _senderStateController.setState(SenderStateEnum.initial);
+      _senderStateController.setState(TransferStateEnum.initial);
     });
     _sharedKeyDigest = null;
     _textEditingController.clear();

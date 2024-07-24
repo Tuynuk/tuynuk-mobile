@@ -10,7 +10,11 @@ class ConnectionClient {
   final BaseEventListeners _eventNotifier;
   late HubConnection? _connection;
   final Dio _dio = Dio(
-    BaseOptions(baseUrl: "http://192.168.1.18:8088/api/"),
+    BaseOptions(
+        baseUrl: "http://192.168.1.18:8088/api/",
+        connectTimeout: const Duration(minutes: 5),
+        sendTimeout: const Duration(minutes: 5),
+        receiveTimeout: const Duration(minutes: 5)),
   );
 
   Dio get dio => _dio;
