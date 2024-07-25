@@ -22,7 +22,8 @@ class ReceiveScreen extends StatefulWidget {
   State<ReceiveScreen> createState() => _ReceiveScreenState();
 }
 
-class _ReceiveScreenState extends State<ReceiveScreen> implements ReceiverListeners {
+class _ReceiveScreenState extends State<ReceiveScreen>
+    implements ReceiverListeners {
   late ConnectionClient _connectionClient;
   ECPrivateKey? _privateKey;
   Uint8List? _sharedKey;
@@ -35,7 +36,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> implements ReceiverListen
     super.initState();
   }
 
-  final TransferStateController _receiverStateController = TransferStateController();
+  final TransferStateController _receiverStateController =
+      TransferStateController();
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +50,8 @@ class _ReceiveScreenState extends State<ReceiveScreen> implements ReceiverListen
             alignment: Alignment.center,
             width: 42,
             height: 42,
-            decoration:
-                BoxDecoration(borderRadius: BorderRadius.circular(12), color: Colors.white12),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12), color: Colors.white12),
             margin: const EdgeInsets.all(24),
             child: IconButton(
               onPressed: () {
@@ -111,13 +113,18 @@ class _ReceiveScreenState extends State<ReceiveScreen> implements ReceiverListen
                       },
                       child: Text(
                         _identifier!,
-                        style:
-                            const TextStyle(fontFamily: "Hack", color: Colors.white, fontSize: 20),
+                        style: const TextStyle(
+                            fontFamily: "Hack",
+                            color: Colors.white,
+                            fontSize: 20),
                       ),
                     ),
                     const Text(
                       "Tap to copy",
-                      style: TextStyle(fontFamily: "Hack", color: Colors.white54, fontSize: 12),
+                      style: TextStyle(
+                          fontFamily: "Hack",
+                          color: Colors.white54,
+                          fontSize: 12),
                     ),
                   ],
                 ),
@@ -137,20 +144,23 @@ class _ReceiveScreenState extends State<ReceiveScreen> implements ReceiverListen
 
   Future<void> _receive() async {
     _receiverStateController.history.clear();
-    _receiverStateController.setState(TransferStateEnum.connection);
+    _receiverStateController.logStatus(TransferStateEnum.connection);
+    setState(() {});
     await _connectionClient.connect();
 
     if (!context.mounted) return;
     if (_connectionClient.isConnected) {
-      _receiverStateController.setState(TransferStateEnum.connected);
-      _receiverStateController.setState(TransferStateEnum.generatingKey);
+      _receiverStateController.logStatus(TransferStateEnum.connected);
+      _receiverStateController.logStatus(TransferStateEnum.generatingKey);
       final keyPair = AppCrypto.generateECKeyPair();
       _privateKey = keyPair.privateKey;
-      _receiverStateController.setState(TransferStateEnum.creatingSession);
-      _connectionClient.createSession(AppCrypto.encodeECPublicKey(keyPair.publicKey));
+      _receiverStateController.logStatus(TransferStateEnum.creatingSession);
+      _connectionClient
+          .createSession(AppCrypto.encodeECPublicKey(keyPair.publicKey));
     } else {
-      _receiverStateController.setState(TransferStateEnum.connectionError);
+      _receiverStateController.logStatus(TransferStateEnum.connectionError);
     }
+    setState(() {});
   }
 
   @override
@@ -167,10 +177,9 @@ class _ReceiveScreenState extends State<ReceiveScreen> implements ReceiverListen
   @override
   Future<void> onPublicKeyReceived(String publicKey) async {
     logMessage("PublicKey : $publicKey");
-
-    _receiverStateController.setState(TransferStateEnum.sharedKeyDeriving);
-    final sharedKey =
-        AppCrypto.deriveSharedSecret(_privateKey!, AppCrypto.decodeECPublicKey(publicKey));
+    _receiverStateController.logStatus(TransferStateEnum.sharedKeyDeriving);
+    final sharedKey = AppCrypto.deriveSharedSecret(
+        _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _sharedKey = sharedKey;
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
@@ -180,34 +189,38 @@ class _ReceiveScreenState extends State<ReceiveScreen> implements ReceiverListen
   @override
   Future<void> onIdentifierReceived(String identifier) async {
     _identifier = identifier;
-    _receiverStateController.setState(TransferStateEnum.identifierGenerated);
+    _receiverStateController.logStatus(TransferStateEnum.identifierGenerated);
     setState(() {});
   }
 
   @override
-  Future<void> onFileReceived(String fileId) async {
-    _receiverStateController.setState(TransferStateEnum.fileIdReceived);
+  Future<void> onFileReceived(String fileId, String fileName,String hmac) async {
+    _receiverStateController.logStatus(TransferStateEnum.fileIdReceived);
     final path = File((await getApplicationCacheDirectory()).path);
-    _receiverStateController.setState(TransferStateEnum.downloadingFile);
-    _connectionClient.downloadFile(fileId, path.path, onSuccess: (bytes, fileName, hmac) async {
-      _receiverStateController.setState(TransferStateEnum.checkingHmac);
+    _receiverStateController.logStatus(TransferStateEnum.downloadingFile);
+
+    _connectionClient.downloadFile(fileId, fileName, path.path,
+        onSuccess: (bytes, fileName) async {
+      _receiverStateController.logStatus(TransferStateEnum.checkingHmac);
       final hmacLocal = hex.encode(AppCrypto.generateHMAC(_sharedKey!, bytes));
       if (hmacLocal == hmac) {
+        _receiverStateController.logStatus(TransferStateEnum.hmacSuccess);
         logMessage("HMAC check success");
       } else {
         logMessage("HMAC check failed");
-        _connectionClient.disconnect();
+        _receiverStateController.logStatus(TransferStateEnum.hmacError);
+        _clear();
         return;
       }
-      _receiverStateController.setState(TransferStateEnum.decryptionFile);
+      _receiverStateController.logStatus(TransferStateEnum.decryptionFile);
       final decBytes = AppCrypto.decryptAES(bytes, _sharedKey!);
-      _clear();
-      final dec = File("${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName");
-      _receiverStateController.setState(TransferStateEnum.writingFile);
+      final dec = File(
+          "${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName");
+      _receiverStateController.logStatus(TransferStateEnum.writingFile);
       dec.writeAsBytesSync(decBytes);
 
-      await _connectionClient.disconnect();
       _clear();
+      await _connectionClient.disconnect();
       Share.shareXFiles([
         XFile(dec.path),
       ]).then((value) {
@@ -221,7 +234,7 @@ class _ReceiveScreenState extends State<ReceiveScreen> implements ReceiverListen
   _clear() {
     setState(() {
       _sharedKeyDigest = null;
-      _receiverStateController.setState(TransferStateEnum.initial);
+      _receiverStateController.logStatus(TransferStateEnum.initial);
       _privateKey = null;
       _identifier = null;
     });
