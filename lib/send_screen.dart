@@ -54,8 +54,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   }
 
   final TextEditingController _textEditingController = TextEditingController();
-  final TransferStateController _senderStateController =
-      TransferStateController();
+  final TransferStateController _senderStateController = TransferStateController();
 
   @override
   Widget build(BuildContext context) {
@@ -68,8 +67,8 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
             alignment: Alignment.center,
             width: 42,
             height: 42,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12), color: Colors.white12),
+            decoration:
+                BoxDecoration(borderRadius: BorderRadius.circular(12), color: Colors.white12),
             margin: const EdgeInsets.all(24),
             child: IconButton(
               onPressed: () {
@@ -97,14 +96,12 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                 style: const TextStyle(fontFamily: "Hack", color: Colors.white),
                 controller: _textEditingController,
                 decoration: InputDecoration(
-                  hintStyle: const TextStyle(
-                      color: Colors.white54, fontFamily: "Hack"),
+                  hintStyle: const TextStyle(color: Colors.white54, fontFamily: "Hack"),
                   hintText: "Input session id",
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: Colors.white60)),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const Padding(
@@ -138,8 +135,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
               ScaleTap(
                 onPressed: () async {
                   if (_senderStateController.canSend) {
-                    final files =
-                        (await FilePicker.platform.pickFiles())?.files ?? [];
+                    final files = (await FilePicker.platform.pickFiles())?.files ?? [];
                     if (files.isEmpty) return;
                     final file = File(files.first.path!);
                     double sizeInMb = file.lengthSync() / (1024 * 1024);
@@ -161,17 +157,14 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                     child: _selectedFile == null
                         ? const Text(
                             "Select file",
-                            style: TextStyle(
-                                color: Colors.white, fontFamily: "Hack"),
+                            style: TextStyle(color: Colors.white, fontFamily: "Hack"),
                           )
                         : ListView.builder(
                             itemExtent: 34,
                             itemCount: (_fileBytes.length * .3).toInt(),
                             scrollDirection: Axis.horizontal,
                             itemBuilder: (e, index) {
-                              final bit = _fileBytes[index]
-                                  .toRadixString(2)
-                                  .padLeft(8, '0');
+                              final bit = _fileBytes[index].toRadixString(2).padLeft(8, '0');
                               return Text(
                                 bit,
                                 style: const TextStyle(color: Colors.white),
@@ -200,34 +193,23 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   }
 
   Future<void> _send() async {
-    setState(() {
-      _senderStateController.history.clear();
-      _senderStateController.setState(TransferStateEnum.loading);
-    });
+    _senderStateController.history.clear();
+    _senderStateController.setState(TransferStateEnum.loading);
     await _connectionClient.connect();
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.connection);
-    });
+    _senderStateController.setState(TransferStateEnum.connection);
     if (_connectionClient.isConnected) {
-      setState(() {
-        _senderStateController.setState(TransferStateEnum.connected);
-        _senderStateController.setState(TransferStateEnum.generatingKey);
-      });
+      _senderStateController.setState(TransferStateEnum.connected);
+      _senderStateController.setState(TransferStateEnum.generatingKey);
       final pair = AppCrypto.generateECKeyPair();
       _privateKey = pair.privateKey;
       _publicKey = pair.publicKey;
 
-      setState(() {
-        _senderStateController.setState(TransferStateEnum.joining);
-      });
-      _connectionClient.joinSession(
-          _textEditingController.text.trim().toUpperCase(),
+      _senderStateController.setState(TransferStateEnum.joining);
+      _connectionClient.joinSession(_textEditingController.text.trim().toUpperCase(),
           AppCrypto.encodeECPublicKey(_publicKey!));
     } else {
-      setState(() {
-        _senderStateController.setState(TransferStateEnum.connectionError);
-      });
+      _senderStateController.setState(TransferStateEnum.connectionError);
     }
   }
 
@@ -239,38 +221,26 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   @override
   Future<void> onPublicKeyReceived(String publicKey) async {
     logMessage("PublicKey : $publicKey");
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.sharedKeyDeriving);
-    });
-    final sharedKey = AppCrypto.deriveSharedSecret(
-        _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
+    _senderStateController.setState(TransferStateEnum.sharedKeyDeriving);
+    final sharedKey =
+        AppCrypto.deriveSharedSecret(_privateKey!, AppCrypto.decodeECPublicKey(publicKey));
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _sharedKey = sharedKey;
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.encryptionFile);
-    });
-    final encrypted =
-        AppCrypto.encryptAES(_selectedFile!.readAsBytesSync(), _sharedKey!);
+    _senderStateController.setState(TransferStateEnum.encryptionFile);
+    final encrypted = AppCrypto.encryptAES(_selectedFile!.readAsBytesSync(), _sharedKey!);
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.writingEncryptedFile);
-    });
+    _senderStateController.setState(TransferStateEnum.writingEncryptedFile);
     final encFile = File(
         "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
     encFile.writeAsBytesSync(encrypted);
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.generatingHmac);
-    });
+    _senderStateController.setState(TransferStateEnum.generatingHmac);
 
-    final hmac = hex
-        .encode(AppCrypto.generateHMAC(_sharedKey!, encFile.readAsBytesSync()));
+    final hmac = hex.encode(AppCrypto.generateHMAC(_sharedKey!, encFile.readAsBytesSync()));
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.sendingFile);
-    });
+    _senderStateController.setState(TransferStateEnum.sendingFile);
 
     final sent = await _connectionClient.sendFile(
       encFile.path,
@@ -284,9 +254,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   }
 
   _clear() {
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.initial);
-    });
+    _senderStateController.setState(TransferStateEnum.initial);
     _sharedKeyDigest = null;
     _textEditingController.clear();
     _publicKey = null;
@@ -294,6 +262,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     _fileBytes = [];
     _selectedFile = null;
     _key.currentState?.reset();
+    setState(() {});
   }
 
   @override
