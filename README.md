@@ -84,6 +84,10 @@ initialization vectors, providing high security for all cryptographic processes.
 The app automatically handles key generation and management for each session, making it easy for
 users to focus on file transfer without worrying about cryptographic details.
 
+### Backend
+
+The backend for Tuynuk is available on GitHub and provides the necessary server-side support for the application's functionality. You can find the backend repository [here](https://github.com/niyozbekmirzayev/Tuynuk).
+
 ## Contributing
 
 We welcome contributions to Tuynuk! Please submit pull requests and open issues to help
