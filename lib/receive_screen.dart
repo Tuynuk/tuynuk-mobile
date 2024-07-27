@@ -180,9 +180,11 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     _receiverStateController.logStatus(TransferStateEnum.sharedKeyDeriving);
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
+    _receiverStateController.logStatus(TransferStateEnum.sharedKeyDerived);
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _sharedKey = sharedKey;
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
+    _receiverStateController.logStatus(TransferStateEnum.waitingFile);
     setState(() {});
   }
 
@@ -194,7 +196,8 @@ class _ReceiveScreenState extends State<ReceiveScreen>
   }
 
   @override
-  Future<void> onFileReceived(String fileId, String fileName,String hmac) async {
+  Future<void> onFileReceived(
+      String fileId, String fileName, String hmac) async {
     _receiverStateController.logStatus(TransferStateEnum.fileIdReceived);
     final path = File((await getApplicationCacheDirectory()).path);
     _receiverStateController.logStatus(TransferStateEnum.downloadingFile);
@@ -202,18 +205,19 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     _connectionClient.downloadFile(fileId, fileName, path.path,
         onSuccess: (bytes, fileName) async {
       _receiverStateController.logStatus(TransferStateEnum.checkingHmac);
-      final hmacLocal = hex.encode(AppCrypto.generateHMAC(_sharedKey!, bytes));
+      final hmacLocal =
+          hex.encode(await AppCrypto.generateHMACIsolate(_sharedKey!, bytes));
       if (hmacLocal == hmac) {
         _receiverStateController.logStatus(TransferStateEnum.hmacSuccess);
         logMessage("HMAC check success");
       } else {
-        logMessage("HMAC check failed");
+        logMessage("HMAC check failed: local $hmacLocal  remote $hmac");
         _receiverStateController.logStatus(TransferStateEnum.hmacError);
         _clear();
         return;
       }
       _receiverStateController.logStatus(TransferStateEnum.decryptionFile);
-      final decBytes = AppCrypto.decryptAES(bytes, _sharedKey!);
+      final decBytes = await AppCrypto.decryptAESInIsolate(bytes, _sharedKey!);
       final dec = File(
           "${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName");
       _receiverStateController.logStatus(TransferStateEnum.writingFile);
