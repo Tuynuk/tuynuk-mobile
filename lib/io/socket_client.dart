@@ -66,7 +66,9 @@ class ConnectionClient {
       });
 
       await Downloader.uploadFile(filePath, sessionId, hmac,
-          onSend: (progress) {});
+          onSend: (progress) {
+        //
+      });
       // final response =
       //     await _dio.post("Files/UploadFile", data: data, queryParameters: {
       //   "sessionIdentifier": sessionId,

@@ -23,11 +23,12 @@ class Downloader {
       realFile = File("${temp.path}/$fileName");
       final task = UploadTask(
         taskId: DateTime.now().millisecondsSinceEpoch.toString(),
-        url: "NetworkUtils.uploadUrl",
+        url: "${ConnectionClient.baseUrl}Files/UploadFile",
         filename: fileName,
         updates: Updates.statusAndProgress,
         baseDirectory: baseDirectory,
-        fields: {
+        fileField: "formFile",
+        urlQueryParameters: {
           "sessionIdentifier": sessionId,
           "HMAC": hmac,
         },
@@ -38,7 +39,6 @@ class Downloader {
         onStatus: (status) async {
           logMessage("Upload status : $status");
           if (status == TaskStatus.failed) {
-            await realFile?.delete(recursive: true);
             return;
           }
         },
@@ -54,13 +54,7 @@ class Downloader {
       // _downloader.cancelTaskWithId(task.taskId);
       // _downloader.destroy();
       logMessage("Response body upload : ${response.responseBody}");
-      try {
-        await realFile.delete(recursive: true);
-      } catch (e) {
-        logMessage("Cache clear failed");
-      }
     } catch (e) {
-      await realFile?.delete(recursive: true);
       logMessage("Upload error : ${e.toString()}");
     }
   }
