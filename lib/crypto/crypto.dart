@@ -46,6 +46,19 @@ class AppCrypto {
     return Uint8List.fromList(iv + encrypted);
   }
 
+  static Future<Uint8List> generateHMACIsolate(
+      Uint8List key, Uint8List message) async {
+    final receivePort = ReceivePort();
+    final isolate = await Isolate.spawn(
+      _generateHMACIsolateEntry,
+      _IsolateData(message, key, receivePort.sendPort),
+    );
+
+    final result = await receivePort.first as Uint8List;
+    isolate.kill(priority: Isolate.immediate);
+    return result;
+  }
+
   static Future<Uint8List> decryptAESInIsolate(
       Uint8List bytes, Uint8List sharedKey) async {
     final receivePort = ReceivePort();
@@ -181,6 +194,11 @@ class AppCrypto {
 
 void _encryptIsolateEntry(_IsolateData data) {
   final encryptedBytes = AppCrypto.encryptAES(data.bytes, data.sharedKey);
+  data.sendPort.send(encryptedBytes);
+}
+
+void _generateHMACIsolateEntry(_IsolateData data) {
+  final encryptedBytes = AppCrypto.generateHMAC(data.bytes, data.sharedKey);
   data.sendPort.send(encryptedBytes);
 }
 

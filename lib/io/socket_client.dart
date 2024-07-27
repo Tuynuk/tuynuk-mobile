@@ -69,11 +69,6 @@ class ConnectionClient {
           onSend: (progress) {
         //
       });
-      // final response =
-      //     await _dio.post("Files/UploadFile", data: data, queryParameters: {
-      //   "sessionIdentifier": sessionId,
-      //   "HMAC": hmac,
-      // });
       return true;
     } catch (e) {
       return false;
