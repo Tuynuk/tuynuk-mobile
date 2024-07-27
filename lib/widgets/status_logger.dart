@@ -14,14 +14,13 @@ class StatusLogger extends StatefulWidget {
 }
 
 class _StatusLoggerState extends State<StatusLogger> {
-
   @override
   void initState() {
-    // widget._controller.onStateChanged((state) {
-    //   WidgetsBinding.instance.addPostFrameCallback((callback) {
-    //     setState(() {});
-    //   });
-    // });
+    widget._controller.onStateChanged((state) {
+      WidgetsBinding.instance.addPostFrameCallback((callback) {
+        setState(() {});
+      });
+    });
     super.initState();
   }
 

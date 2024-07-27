@@ -19,8 +19,8 @@ enum TransferStateEnum {
   decryptionFile("Decryption file"),
   downloadingFile("Downloading file"),
   checkingHmac("Checking data integrity"),
-  hmacError("HMAC error"),
-  hmacSuccess("HMAC success"),
+  hmacError("File corrupted"),
+  hmacSuccess("File NOT corrupted"),
   clearing("Clearing");
 
   const TransferStateEnum(this.value);
@@ -55,7 +55,7 @@ class TransferStateController {
     }
   }
 
-  void setState(TransferStateEnum state) {
+  void logStatus(TransferStateEnum state) {
     _currentState = state;
     _history.add(state);
     if (state == TransferStateEnum.failed ||

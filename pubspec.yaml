@@ -39,7 +39,7 @@ dependencies:
   dio: ^5.5.0+1
   receive_sharing_intent: ^1.8.0
   share_plus: ^9.0.0
-  flutter_downloader: ^1.11.7
+  background_downloader: ^8.5.2
   signalr_netcore:
     git:
       url: https://github.com/xaldarof/signalr_client_plus.git

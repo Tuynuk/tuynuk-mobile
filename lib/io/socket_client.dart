@@ -1,17 +1,20 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:background_downloader/background_downloader.dart';
 import 'package:dio/dio.dart';
 import 'package:safe_file_sender/dev/logger.dart';
+import 'package:safe_file_sender/io/downloader.dart';
 import 'package:signalr_netcore/json_hub_protocol.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 
 class ConnectionClient {
   final BaseEventListeners _eventNotifier;
   late HubConnection? _connection;
+  static String baseUrl = "http://192.168.1.18:8088/api/";
   final Dio _dio = Dio(
     BaseOptions(
-        baseUrl: "http://192.168.1.18:8088/api/",
+        baseUrl: baseUrl,
         connectTimeout: const Duration(minutes: 5),
         sendTimeout: const Duration(minutes: 5),
         receiveTimeout: const Duration(minutes: 5)),
@@ -57,16 +60,24 @@ class ConnectionClient {
 
   Future<bool> sendFile(
       String filePath, String fileName, String sessionId, String hmac) async {
-    FormData data = FormData.fromMap({
-      "formFile": await MultipartFile.fromFile(filePath, filename: fileName),
-    });
+    try {
+      FormData data = FormData.fromMap({
+        "formFile": await MultipartFile.fromFile(filePath, filename: fileName),
+      });
 
-    final response =
-        await _dio.post("Files/UploadFile", data: data, queryParameters: {
-      "sessionIdentifier": sessionId,
-      "HMAC": hmac,
-    });
-    return response.statusCode == 200;
+      await Downloader.uploadFile(filePath, sessionId, hmac,
+          onSend: (progress) {
+        //
+      });
+      // final response =
+      //     await _dio.post("Files/UploadFile", data: data, queryParameters: {
+      //   "sessionIdentifier": sessionId,
+      //   "HMAC": hmac,
+      // });
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<void> _listenEvents() async {
@@ -81,8 +92,11 @@ class ConnectionClient {
     });
     _connection?.on('OnFileUploaded', (message) async {
       _log("OnFileUploaded : $message");
-      (_eventNotifier as ReceiverListeners)
-          .onFileReceived(message![0].toString());
+      (_eventNotifier as ReceiverListeners).onFileReceived(
+        message![0].toString(),
+        message[1].toString(),
+        message[2].toString(),
+      );
     });
   }
 
@@ -114,43 +128,21 @@ class ConnectionClient {
 
   _log(dynamic message) => logMessage(message);
 
-  Future<void> downloadFile(String fileId, String savePath,
-      {required Function(Uint8List bytes, String fileName, String hmac)
-          onSuccess,
+  Future<Map<String, dynamic>> fetchHeaders(String url) async {
+    final response = await dio.head(url);
+    return response.headers.map;
+  }
+
+  Future<void> downloadFile(String fileId, String fileName, String savePath,
+      {required Function(Uint8List bytes, String fileName) onSuccess,
       required Function() onError}) async {
     try {
-      Response response = await dio.get(
-        "Files/GetFile?fileId=$fileId",
-        options: Options(
-          responseType: ResponseType.stream,
-        ),
-      );
-
-      logMessage(response.headers);
-      String fileName = 'default_file_name';
-      if (response.headers['content-disposition'] != null) {
-        final String headerValue =
-            response.headers['content-disposition']!.first;
-        const String pattern = 'filename*=utf-8' '';
-        fileName = Uri.decodeFull(headerValue
-                .substring(headerValue.indexOf(pattern) + pattern.length + 2))
-            .split(" ")[0]
-            .replaceAll(";", "")
-            .replaceAll("name=", "")
-            .trim();
-      }
-      File file = File('$savePath/$fileName');
-      var raf = file.openSync(mode: FileMode.write);
-
-      logMessage("File name : $fileName");
-      response.data.stream.listen((data) {
-        logMessage("Writing : $data");
-        raf.writeFromSync(data);
-      }).onDone(() async {
-        await raf.close();
-        onSuccess.call(file.readAsBytesSync(), fileName,
-            response.headers.map['HMAC']!.first);
-        logMessage('Download complete: $fileName');
+      Downloader.download(fileId, fileName,
+          onSuccess: (String downloadedPath) async {
+        onSuccess.call(
+          File(downloadedPath).readAsBytesSync(),
+          fileName,
+        );
       });
     } catch (e) {
       onError.call();
@@ -168,7 +160,7 @@ abstract class BaseEventListeners {
 abstract class ReceiverListeners extends BaseEventListeners {
   Future<void> onIdentifierReceived(String publicKey);
 
-  Future<void> onFileReceived(String fileId);
+  Future<void> onFileReceived(String fileId, String fileName, String hmac);
 }
 
 abstract class SenderListeners extends BaseEventListeners {}

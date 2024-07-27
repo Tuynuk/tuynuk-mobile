@@ -143,7 +143,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                     if (files.isEmpty) return;
                     final file = File(files.first.path!);
                     double sizeInMb = file.lengthSync() / (1024 * 1024);
-                    if (sizeInMb > 5) return;
+                    if (sizeInMb > 100) return;
                     _selectedFile = file;
 
                     _fileBytes = _selectedFile!.readAsBytesSync().toList();
@@ -200,34 +200,25 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   }
 
   Future<void> _send() async {
-    setState(() {
-      _senderStateController.history.clear();
-      _senderStateController.setState(TransferStateEnum.loading);
-    });
+    _senderStateController.history.clear();
+    _senderStateController.logStatus(TransferStateEnum.loading);
+    setState(() {});
     await _connectionClient.connect();
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.connection);
-    });
+    _senderStateController.logStatus(TransferStateEnum.connection);
     if (_connectionClient.isConnected) {
-      setState(() {
-        _senderStateController.setState(TransferStateEnum.connected);
-        _senderStateController.setState(TransferStateEnum.generatingKey);
-      });
+      _senderStateController.logStatus(TransferStateEnum.connected);
+      _senderStateController.logStatus(TransferStateEnum.generatingKey);
       final pair = AppCrypto.generateECKeyPair();
       _privateKey = pair.privateKey;
       _publicKey = pair.publicKey;
 
-      setState(() {
-        _senderStateController.setState(TransferStateEnum.joining);
-      });
+      _senderStateController.logStatus(TransferStateEnum.joining);
       _connectionClient.joinSession(
           _textEditingController.text.trim().toUpperCase(),
           AppCrypto.encodeECPublicKey(_publicKey!));
     } else {
-      setState(() {
-        _senderStateController.setState(TransferStateEnum.connectionError);
-      });
+      _senderStateController.logStatus(TransferStateEnum.connectionError);
     }
   }
 
@@ -239,38 +230,28 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   @override
   Future<void> onPublicKeyReceived(String publicKey) async {
     logMessage("PublicKey : $publicKey");
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.sharedKeyDeriving);
-    });
+    _senderStateController.logStatus(TransferStateEnum.sharedKeyDeriving);
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _sharedKey = sharedKey;
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.encryptionFile);
-    });
+    _senderStateController.logStatus(TransferStateEnum.encryptionFile);
     final encrypted =
         AppCrypto.encryptAES(_selectedFile!.readAsBytesSync(), _sharedKey!);
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.writingEncryptedFile);
-    });
+    _senderStateController.logStatus(TransferStateEnum.writingEncryptedFile);
     final encFile = File(
         "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
     encFile.writeAsBytesSync(encrypted);
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.generatingHmac);
-    });
+    _senderStateController.logStatus(TransferStateEnum.generatingHmac);
 
     final hmac = hex
         .encode(AppCrypto.generateHMAC(_sharedKey!, encFile.readAsBytesSync()));
 
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.sendingFile);
-    });
+    _senderStateController.logStatus(TransferStateEnum.sendingFile);
 
     final sent = await _connectionClient.sendFile(
       encFile.path,
@@ -284,9 +265,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   }
 
   _clear() {
-    setState(() {
-      _senderStateController.setState(TransferStateEnum.initial);
-    });
+    _senderStateController.logStatus(TransferStateEnum.initial);
     _sharedKeyDigest = null;
     _textEditingController.clear();
     _publicKey = null;
@@ -294,6 +273,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     _fileBytes = [];
     _selectedFile = null;
     _key.currentState?.reset();
+    setState(() {});
   }
 
   @override
