@@ -56,7 +56,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
   final TextEditingController _textEditingController = TextEditingController();
   final TransferStateController _senderStateController =
-  TransferStateController();
+      TransferStateController();
 
   @override
   Widget build(BuildContext context) {
@@ -113,9 +113,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
               ),
               ElevatedButton(
                 onPressed: () {
-                  if (_textEditingController.text
-                      .trim()
-                      .isNotEmpty &&
+                  if (_textEditingController.text.trim().isNotEmpty &&
                       _selectedFile != null &&
                       _senderStateController.canSend) {
                     _send();
@@ -123,17 +121,17 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                 },
                 child: (!_senderStateController.canSend)
                     ? const SizedBox(
-                  width: 12,
-                  height: 12,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Text(
-                  "Send",
-                  style: TextStyle(fontFamily: "Hack"),
-                ),
+                        "Send",
+                        style: TextStyle(fontFamily: "Hack"),
+                      ),
               ),
               const Padding(
                 padding: EdgeInsets.all(16),
@@ -163,24 +161,24 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                     alignment: Alignment.center,
                     child: _selectedFile == null
                         ? const Text(
-                      "Select file",
-                      style: TextStyle(
-                          color: Colors.white, fontFamily: "Hack"),
-                    )
+                            "Select file",
+                            style: TextStyle(
+                                color: Colors.white, fontFamily: "Hack"),
+                          )
                         : ListView.builder(
-                      itemExtent: 34,
-                      itemCount: (_fileBytes.length * .3).toInt(),
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (e, index) {
-                        final bit = _fileBytes[index]
-                            .toRadixString(2)
-                            .padLeft(8, '0');
-                        return Text(
-                          bit,
-                          style: const TextStyle(color: Colors.white),
-                        );
-                      },
-                    ),
+                            itemExtent: 34,
+                            itemCount: (_fileBytes.length * .3).toInt(),
+                            scrollDirection: Axis.horizontal,
+                            itemBuilder: (e, index) {
+                              final bit = _fileBytes[index]
+                                  .toRadixString(2)
+                                  .padLeft(8, '0');
+                              return Text(
+                                bit,
+                                style: const TextStyle(color: Colors.white),
+                              );
+                            },
+                          ),
                   ),
                 ),
               ),
@@ -241,6 +239,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     _senderStateController.logStatus(TransferStateEnum.waitingFile);
     _sharedKey = sharedKey;
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
+    setState(() {});
 
     _senderStateController.logStatus(TransferStateEnum.encryptionFile);
     final encrypted = await AppCrypto.encryptAESInIsolate(
@@ -248,17 +247,17 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
     _senderStateController.logStatus(TransferStateEnum.writingEncryptedFile);
     final encFile = File(
-        "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils
-            .fileName(_selectedFile!.path)}");
+        "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
     encFile.writeAsBytesSync(encrypted);
 
     _senderStateController.logStatus(TransferStateEnum.generatingHmac);
 
-    final hmac = hex.encode(await AppCrypto.generateHMACIsolate(_sharedKey!, encFile.readAsBytesSync()));
+    final hmac = hex.encode(await AppCrypto.generateHMACIsolate(
+        _sharedKey!, encFile.readAsBytesSync()));
 
-        _senderStateController.logStatus(TransferStateEnum.sendingFile);
+    _senderStateController.logStatus(TransferStateEnum.sendingFile);
 
-      final sent = await _connectionClient.sendFile(
+    final sent = await _connectionClient.sendFile(
       encFile.path,
       FileUtils.fileName(_selectedFile!.path),
       _textEditingController.text.toUpperCase().trim(),
@@ -266,9 +265,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     );
 
     logMessage("Sent : $sent");
-    _key.currentState?.snap
-      (
-    );
+    _key.currentState?.snap();
   }
 
   _clear() {
