@@ -17,4 +17,11 @@ void main() {
   print("HMAC ${hex.encode(hmac)}");
   final end = DateTime.now().millisecondsSinceEpoch;
   print("Benchmark generate HMAC: ${(end - start)}ms");
+
+  ///Benchmark encryption
+  final startEnc = DateTime.now().millisecondsSinceEpoch;
+  AppCrypto.encryptAES(file.readAsBytesSync(), sharedKey);
+  final endEnc = DateTime.now().millisecondsSinceEpoch;
+
+  print("Benchmark encryption: ${(endEnc - startEnc)}ms");
 }
