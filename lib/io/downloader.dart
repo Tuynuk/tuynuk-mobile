@@ -1,8 +1,5 @@
-import 'dart:io';
-
 import 'package:background_downloader/background_downloader.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 
@@ -12,21 +9,16 @@ class Downloader {
   static final _downloader = FileDownloader();
 
   static Future<void> uploadFile(String filePath, String sessionId, String hmac,
-      {Function(int percentage)? onSend,
-      String subDir = "file_picker",
-      BaseDirectory baseDirectory = BaseDirectory.temporary}) async {
-    File? realFile;
+      {Function(int percentage)? onUpdate, Function()? onError}) async {
     try {
-      final temp = await getApplicationDocumentsDirectory();
       String fileName = filePath.split('/').last;
       logMessage("Uploading $fileName");
-      realFile = File("${temp.path}/$fileName");
       final task = UploadTask(
         taskId: DateTime.now().millisecondsSinceEpoch.toString(),
         url: "${ConnectionClient.baseUrl}Files/UploadFile",
         filename: fileName,
         updates: Updates.statusAndProgress,
-        baseDirectory: baseDirectory,
+        baseDirectory: BaseDirectory.temporary,
         fileField: "formFile",
         urlQueryParameters: {
           "sessionIdentifier": sessionId,
@@ -46,7 +38,7 @@ class Downloader {
           final percent = (progress * 100).toInt();
           logMessage("Upload progress : $percent");
           if ((prev - percent).abs() > 20 || percent == 100) {
-            onSend?.call(percent.abs());
+            onUpdate?.call(percent.abs());
             prev = percent;
           }
         },
@@ -55,6 +47,7 @@ class Downloader {
       // _downloader.destroy();
       logMessage("Response body upload : ${response.responseBody}");
     } catch (e) {
+      onError?.call();
       logMessage("Upload error : ${e.toString()}");
     }
   }
@@ -68,6 +61,7 @@ class Downloader {
         url: "${ConnectionClient.baseUrl}Files/GetFile?fileId=$fileId",
         updates: Updates.statusAndProgress,
         filename: fileName,
+        allowPause: true,
       );
       var prev = 0;
       _downloader.enqueue(
