@@ -61,13 +61,11 @@ class ConnectionClient {
   Future<bool> sendFile(
       String filePath, String fileName, String sessionId, String hmac) async {
     try {
-      FormData data = FormData.fromMap({
-        "formFile": await MultipartFile.fromFile(filePath, filename: fileName),
-      });
-
       await Downloader.uploadFile(filePath, sessionId, hmac,
-          onSend: (progress) {
+          onUpdate: (progress) {
         //
+      }, onError: () {
+        throw Exception();
       });
       return true;
     } catch (e) {

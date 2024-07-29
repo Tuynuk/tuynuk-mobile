@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
@@ -44,6 +45,67 @@ class AppCrypto {
     final encrypted = cipher.process(plaintext);
 
     return Uint8List.fromList(iv + encrypted);
+  }
+
+  static Future<void> decryptFileAES(
+      String inputPath, String outputPath, Uint8List key) async {
+    final inputFile = File(inputPath);
+    final outputFile = File(outputPath);
+    final inputStream = inputFile.openRead();
+    final outputSink = outputFile.openWrite();
+
+    final iv = await inputStream.first;
+
+    final cipher = PaddedBlockCipherImpl(
+      PKCS7Padding(),
+      CBCBlockCipher(AESEngine()),
+    )..init(
+        false,
+        PaddedBlockCipherParameters(
+          ParametersWithIV<KeyParameter>(
+              KeyParameter(Uint8List.fromList(key.sublist(0, 32))),
+              Uint8List.fromList(iv)),
+          null,
+        ),
+      );
+
+    await for (final chunk in inputStream) {
+      final decryptedChunk = cipher.process(Uint8List.fromList(chunk));
+      outputSink.add(decryptedChunk);
+    }
+
+    await outputSink.close();
+  }
+
+  static Future<void> encryptFileAES(
+      String inputPath, String outputPath, Uint8List key) async {
+    final iv = _generateRandomBytes(16);
+
+    final cipher = PaddedBlockCipherImpl(
+      PKCS7Padding(),
+      CBCBlockCipher(AESEngine()),
+    )..init(
+        true,
+        PaddedBlockCipherParameters(
+          ParametersWithIV<KeyParameter>(
+              KeyParameter(Uint8List.fromList(key.sublist(0, 32))), iv),
+          null,
+        ),
+      );
+
+    final inputFile = File(inputPath);
+    final outputFile = File(outputPath);
+    final outputSink = outputFile.openWrite();
+
+    outputSink.add(iv);
+
+    final inputStream = inputFile.openRead();
+    await for (final chunk in inputStream) {
+      final encryptedChunk = cipher.process(Uint8List.fromList(chunk));
+      outputSink.add(encryptedChunk);
+    }
+
+    await outputSink.close();
   }
 
   static Future<Uint8List> generateHMACIsolate(

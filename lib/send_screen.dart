@@ -167,7 +167,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                           )
                         : ListView.builder(
                             itemExtent: 34,
-                            itemCount: (_fileBytes.length * .3).toInt(),
+                            itemCount: (_fileBytes.length * .1).toInt(),
                             scrollDirection: Axis.horizontal,
                             itemBuilder: (e, index) {
                               final bit = _fileBytes[index]
@@ -244,7 +244,8 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     _senderStateController.logStatus(TransferStateEnum.encryptionFile);
     final encrypted = await AppCrypto.encryptAESInIsolate(
         _selectedFile!.readAsBytesSync(), _sharedKey!);
-
+    _fileBytes = encrypted;
+    setState(() {});
     _senderStateController.logStatus(TransferStateEnum.writingEncryptedFile);
     final encFile = File(
         "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
@@ -263,7 +264,9 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
       _textEditingController.text.toUpperCase().trim(),
       hmac,
     );
-
+    if (!sent) {
+      _senderStateController.logStatus(TransferStateEnum.connectionError);
+    }
     logMessage("Sent : $sent");
     _key.currentState?.snap();
   }
