@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:safe_file_sender/benchmark/models.dart';
 import 'package:safe_file_sender/crypto/crypto.dart';
 
 final _file = File("${Directory.current.path}/files/input.exe");
@@ -40,17 +41,3 @@ void _benchmarkEncryption() {
   });
 }
 
-class BenchmarkTimer {
-  final String _name;
-
-  int run(Function() action) {
-    final start = DateTime.now().millisecondsSinceEpoch;
-    action.call();
-    final end = DateTime.now().millisecondsSinceEpoch;
-    final result = end - start;
-    print("Benchmark for ($_name): $result ms");
-    return result;
-  }
-
-  BenchmarkTimer(this._name);
-}
