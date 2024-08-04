@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
+import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';

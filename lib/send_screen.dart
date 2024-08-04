@@ -11,6 +11,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/crypto/crypto.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
+import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
