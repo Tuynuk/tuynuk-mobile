@@ -250,7 +250,8 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     final encFile = File(
         "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
     encFile.writeAsBytesSync(encrypted);
-
+    final String fileName = FileUtils.fileName(_selectedFile!.path);
+    _selectedFile?.safeDelete();
     _senderStateController.logStatus(TransferStateEnum.generatingHmac);
 
     final hmac = hex.encode(await AppCrypto.generateHMACIsolate(
@@ -260,10 +261,11 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
     final sent = await _connectionClient.sendFile(
       encFile.path,
-      FileUtils.fileName(_selectedFile!.path),
+      fileName,
       _textEditingController.text.toUpperCase().trim(),
       hmac,
     );
+    encFile.safeDelete();
     if (!sent) {
       _senderStateController.logStatus(TransferStateEnum.connectionError);
     }
