@@ -24,6 +24,7 @@ enum TransferStateEnum {
   hmacError("File corrupted"),
   hmacSuccess("File NOT corrupted"),
   fileDeleteError("File deletion error"),
+  sharedKeyDigest("Shared key digest"),
   clearing("Clearing");
 
   const TransferStateEnum(this.value);

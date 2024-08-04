@@ -185,6 +185,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _sharedKey = sharedKey;
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
+    _receiverStateController.logStatus(TransferStateEnum.sharedKeyDigest);
     _receiverStateController.logStatus(TransferStateEnum.waitingFile);
     setState(() {});
   }
