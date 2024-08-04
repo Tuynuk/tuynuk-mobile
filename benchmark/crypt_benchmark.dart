@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:safe_file_sender/benchmark/models.dart';
 import 'package:safe_file_sender/crypto/crypto.dart';
+
+import 'models.dart';
 
 final _file = File("${Directory.current.path}/files/input.exe");
 late Uint8List _testKey;
