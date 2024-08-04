@@ -23,6 +23,7 @@ enum TransferStateEnum {
   checkingHmac("Checking data integrity"),
   hmacError("File corrupted"),
   hmacSuccess("File NOT corrupted"),
+  fileDeleteError("File deletion error"),
   clearing("Clearing");
 
   const TransferStateEnum(this.value);

@@ -232,43 +232,56 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   Future<void> onPublicKeyReceived(String publicKey) async {
     logMessage("PublicKey : $publicKey");
     _senderStateController.logStatus(TransferStateEnum.sharedKeyDeriving);
+
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
     logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
     _senderStateController.logStatus(TransferStateEnum.sharedKeyDerived);
     _senderStateController.logStatus(TransferStateEnum.waitingFile);
+
     _sharedKey = sharedKey;
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
     setState(() {});
 
+    // Start both the encryption and HMAC generation concurrently.
     _senderStateController.logStatus(TransferStateEnum.encryptionFile);
-    final encrypted = await AppCrypto.encryptAESInIsolate(
+    final encryptionFuture = AppCrypto.encryptAESInIsolate(
         _selectedFile!.readAsBytesSync(), _sharedKey!);
+
+    _senderStateController.logStatus(TransferStateEnum.generatingHmac);
+    final hmacFuture = encryptionFuture.then((encrypted) {
+      return AppCrypto.generateHMACIsolate(_sharedKey!, encrypted);
+    });
+
+    // Wait for both encryption and HMAC generation to complete.
+    final encrypted = await encryptionFuture;
+    final hmac = hex.encode(await hmacFuture);
+
     _fileBytes = encrypted;
     setState(() {});
+
     _senderStateController.logStatus(TransferStateEnum.writingEncryptedFile);
     final encFile = File(
         "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
     encFile.writeAsBytesSync(encrypted);
+
     final String fileName = FileUtils.fileName(_selectedFile!.path);
     _selectedFile?.safeDelete();
-    _senderStateController.logStatus(TransferStateEnum.generatingHmac);
-
-    final hmac = hex.encode(await AppCrypto.generateHMACIsolate(
-        _sharedKey!, encFile.readAsBytesSync()));
 
     _senderStateController.logStatus(TransferStateEnum.sendingFile);
-
     final sent = await _connectionClient.sendFile(
       encFile.path,
       fileName,
       _textEditingController.text.toUpperCase().trim(),
       hmac,
     );
+
     encFile.safeDelete();
+
     if (!sent) {
       _senderStateController.logStatus(TransferStateEnum.connectionError);
     }
+
     logMessage("Sent : $sent");
     _key.currentState?.snap();
   }

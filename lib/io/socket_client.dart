@@ -5,6 +5,7 @@ import 'package:background_downloader/background_downloader.dart';
 import 'package:dio/dio.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/downloader.dart';
+import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:signalr_netcore/json_hub_protocol.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 
@@ -134,7 +135,7 @@ class ConnectionClient {
           onSuccess: (String downloadedPath) async {
         final file = File(downloadedPath);
         final fileBytes = file.readAsBytesSync();
-        file.delete();
+        file.safeDelete();
         onSuccess.call(
           fileBytes,
           fileName,

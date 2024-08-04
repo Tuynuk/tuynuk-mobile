@@ -233,6 +233,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
         decryptedFile.safeDelete();
       });
     }, onError: () {
+      _receiverStateController.logStatus(TransferStateEnum.fileDeleteError);
       _clear();
     });
   }
