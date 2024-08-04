@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
+import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
 import 'package:safe_file_sender/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/widgets/status_logger.dart';
@@ -218,17 +219,18 @@ class _ReceiveScreenState extends State<ReceiveScreen>
       }
       _receiverStateController.logStatus(TransferStateEnum.decryptionFile);
       final decBytes = await AppCrypto.decryptAESInIsolate(bytes, _sharedKey!);
-      final dec = File(
+
+      final decryptedFile = File(
           "${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName");
       _receiverStateController.logStatus(TransferStateEnum.writingFile);
-      dec.writeAsBytesSync(decBytes);
+      decryptedFile.writeAsBytesSync(decBytes);
 
       _clear();
       await _connectionClient.disconnect();
       Share.shareXFiles([
-        XFile(dec.path),
+        XFile(decryptedFile.path),
       ]).then((value) {
-        dec.delete(recursive: true);
+        decryptedFile.safeDelete();
       });
     }, onError: () {
       _clear();

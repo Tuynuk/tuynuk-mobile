@@ -132,8 +132,11 @@ class ConnectionClient {
     try {
       Downloader.download(fileId, fileName,
           onSuccess: (String downloadedPath) async {
+        final file = File(downloadedPath);
+        final fileBytes = file.readAsBytesSync();
+        file.delete();
         onSuccess.call(
-          File(downloadedPath).readAsBytesSync(),
+          fileBytes,
           fileName,
         );
       });
