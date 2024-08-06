@@ -75,15 +75,13 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
 
     quickActions.setShortcutItems(<ShortcutItem>[
       const ShortcutItem(
-        type: 'receive',
-        localizedTitle: 'Receive',
-        icon: 'round_arrow_downward_24'
-      ),
+          type: 'receive',
+          localizedTitle: 'Receive',
+          icon: 'round_arrow_downward_24'),
       const ShortcutItem(
-        type: 'send',
-        localizedTitle: 'Send',
-        icon: 'baseline_arrow_upward_24'
-      ),
+          type: 'send',
+          localizedTitle: 'Send',
+          icon: 'baseline_arrow_upward_24'),
     ]);
   }
 
