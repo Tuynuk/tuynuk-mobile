@@ -106,14 +106,13 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
     });
 
     quickActions.setShortcutItems(<ShortcutItem>[
-      ShortcutItem(
+    ShortcutItem(
           type: PathValues.receive,
           localizedTitle: context.localization.receive,
           icon: 'round_arrow_downward_24'),
       ShortcutItem(
           type: PathValues.send,
           localizedTitle: context.localization.send,
-          icon: 'baseline_arrow_upward_24'),
     ]);
   }
 
