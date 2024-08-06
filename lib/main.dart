@@ -16,6 +16,7 @@ import 'package:safe_file_sender/models/environment.dart';
 import 'package:safe_file_sender/ui/main/bloc/main_bloc.dart';
 import 'package:safe_file_sender/ui/receive_screen.dart';
 import 'package:safe_file_sender/ui/send_screen.dart';
+import 'package:safe_file_sender/ui/theme.dart';
 import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -158,10 +159,8 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
             child: DropdownButton<Locale>(
               underline: null,
               icon: null,
-              hint: Text(
-                context.localization.inputSessionId,
-                style: const TextStyle(color: Colors.white),
-              ),
+              hint: Text(context.localization.inputSessionId,
+                  style: AppTheme.textTheme.titleMedium),
               onChanged: (Locale? locale) {
                 if (locale == null) return;
                 context.read<MainBloc>().add(UpdateLocalization(locale));
@@ -193,7 +192,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                   },
                   child: Text(
                     context.localization.send,
-                    style: const TextStyle(fontFamily: "Hack"),
+                    style: AppTheme.textTheme.titleMedium,
                   ),
                 ),
                 ElevatedButton(
@@ -202,7 +201,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                   },
                   child: Text(
                     context.localization.receive,
-                    style: const TextStyle(fontFamily: "Hack"),
+                    style: AppTheme.textTheme.titleMedium,
                   ),
                 ),
               ],
@@ -219,8 +218,8 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                 margin: const EdgeInsets.all(12),
                 child: Text(
                   context.localization.sourceCode,
-                  style: const TextStyle(
-                      fontFamily: "Hack", color: Colors.white60, fontSize: 8),
+                  style: AppTheme.textTheme.titleMedium
+                      ?.copyWith(color: Colors.white60, fontSize: 8),
                 ),
               ),
             ),

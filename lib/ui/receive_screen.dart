@@ -8,6 +8,7 @@ import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
+import 'package:safe_file_sender/ui/theme.dart';
 import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
@@ -95,7 +96,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                       )
                     : Text(
                         context.localization.createSession,
-                        style: TextStyle(fontFamily: "Hack"),
+                        style: AppTheme.textTheme.titleMedium,
                       ),
               ),
               const Padding(
@@ -116,18 +117,14 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                       },
                       child: Text(
                         _identifier!,
-                        style: const TextStyle(
-                            fontFamily: "Hack",
-                            color: Colors.white,
-                            fontSize: 20),
+                        style: AppTheme.textTheme.titleMedium
+                            ?.copyWith(fontSize: 20),
                       ),
                     ),
                     Text(
                       context.localization.tapToCopy,
-                      style: const TextStyle(
-                          fontFamily: "Hack",
-                          color: Colors.white54,
-                          fontSize: 12),
+                      style: AppTheme.textTheme.titleMedium
+                          ?.copyWith(color: Colors.white54, fontSize: 12),
                     ),
                   ],
                 ),
