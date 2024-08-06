@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:safe_file_sender/widgets/scale_tap.dart';
+import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
 
 class Button extends StatelessWidget {
   final Function() onTap;

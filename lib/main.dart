@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/dev/logger.dart';
-import 'package:safe_file_sender/receive_screen.dart';
-import 'package:safe_file_sender/send_screen.dart';
-import 'package:safe_file_sender/widgets/scale_tap.dart';
+import 'package:safe_file_sender/l10n/gen/app_localizations.dart';
+import 'package:safe_file_sender/ui/receive_screen.dart';
+import 'package:safe_file_sender/ui/send_screen.dart';
+import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
@@ -21,6 +23,8 @@ class SafeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routes: {
         "/send": (context) => SendScreen(
             sharedFile:
@@ -75,15 +79,13 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
 
     quickActions.setShortcutItems(<ShortcutItem>[
       const ShortcutItem(
-        type: 'receive',
-        localizedTitle: 'Receive',
-        icon: 'round_arrow_downward_24'
-      ),
+          type: 'receive',
+          localizedTitle: 'Receive',
+          icon: 'round_arrow_downward_24'),
       const ShortcutItem(
-        type: 'send',
-        localizedTitle: 'Send',
-        icon: 'baseline_arrow_upward_24'
-      ),
+          type: 'send',
+          localizedTitle: 'Send',
+          icon: 'baseline_arrow_upward_24'),
     ]);
   }
 
@@ -132,8 +134,8 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                   onPressed: () {
                     Navigator.pushNamed(context, "/send");
                   },
-                  child: const Text(
-                    "Send file",
+                  child: Text(
+                    AppLocalizations.of(context)!.send,
                     style: TextStyle(fontFamily: "Hack"),
                   ),
                 ),
@@ -141,8 +143,8 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                   onPressed: () {
                     Navigator.pushNamed(context, "/receive");
                   },
-                  child: const Text(
-                    "Receive file",
+                  child: Text(
+                    AppLocalizations.of(context)!.receive,
                     style: TextStyle(fontFamily: "Hack"),
                   ),
                 ),

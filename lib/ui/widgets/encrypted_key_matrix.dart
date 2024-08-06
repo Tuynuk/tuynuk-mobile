@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:safe_file_sender/l10n/gen/app_localizations.dart';
 
 class EncryptionKeyWidget extends StatelessWidget {
   final List<String> keyMatrix;
@@ -28,10 +29,10 @@ class EncryptionKeyWidget extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.all(12),
         ),
-        const Text(
+        Text(
           textAlign: TextAlign.center,
-          "This text were derived from the encryption key",
-          style: TextStyle(
+          AppLocalizations.of(context)!.keyDerivationInfo,
+          style: const TextStyle(
             color: Colors.white30,
             fontFamily: "Hack",
             fontSize: 12,

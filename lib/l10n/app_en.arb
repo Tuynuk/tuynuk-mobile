@@ -1,0 +1,5 @@
+{
+  "send":"Send",
+  "receive":"Receive",
+  "keyDerivationInfo":"This text were derived from the encryption key"
+}

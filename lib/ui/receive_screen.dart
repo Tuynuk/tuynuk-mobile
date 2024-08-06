@@ -8,14 +8,14 @@ import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
+import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
-import 'package:safe_file_sender/widgets/encrypted_key_matrix.dart';
-import 'package:safe_file_sender/widgets/status_logger.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'crypto/crypto.dart';
-import 'dev/logger.dart';
+import '../crypto/crypto.dart';
+import '../dev/logger.dart';
+import 'widgets/status_logger.dart';
 
 class ReceiveScreen extends StatefulWidget {
   const ReceiveScreen({super.key});
