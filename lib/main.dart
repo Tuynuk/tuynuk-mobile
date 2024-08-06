@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/receive_screen.dart';
@@ -48,25 +48,56 @@ class TuynukHomePage extends StatefulWidget {
 }
 
 class _TuynukHomePageState extends State<TuynukHomePage> {
-  late StreamSubscription _sub;
+  late StreamSubscription _sharingIntentSubscription;
 
   @override
   void initState() {
     _handleSharingIntent();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    _initQuickActions();
     super.initState();
+  }
+
+  _handleAction(String actionType) {
+    if (actionType == 'send') {
+      Navigator.pushNamed(context, "/send");
+    }
+    if (actionType == 'receive') {
+      Navigator.pushNamed(context, "/receive");
+    }
+  }
+
+  _initQuickActions() {
+    const QuickActions quickActions = QuickActions();
+    quickActions.initialize((String shortcutType) {
+      _handleAction(shortcutType);
+    });
+
+    quickActions.setShortcutItems(<ShortcutItem>[
+      const ShortcutItem(
+        type: 'receive',
+        localizedTitle: 'Receive',
+        icon: 'round_arrow_downward_24'
+      ),
+      const ShortcutItem(
+        type: 'send',
+        localizedTitle: 'Send',
+        icon: 'baseline_arrow_upward_24'
+      ),
+    ]);
   }
 
   @override
   void dispose() {
-    _sub.cancel();
+    _sharingIntentSubscription.cancel();
     super.dispose();
   }
 
   Future<void> _handleSharingIntent() async {
     try {
       if (!(Platform.isAndroid || Platform.isIOS)) return;
-      _sub = ReceiveSharingIntent.instance.getMediaStream().listen((value) {
+      _sharingIntentSubscription =
+          ReceiveSharingIntent.instance.getMediaStream().listen((value) {
         if (!Navigator.canPop(context) && value.isNotEmpty) {
           Navigator.pushNamed(context, "/send", arguments: value.first);
           ReceiveSharingIntent.instance.reset();

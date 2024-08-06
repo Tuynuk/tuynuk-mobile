@@ -1,27 +1,43 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:convert/convert.dart';
 import 'package:safe_file_sender/crypto/crypto.dart';
 
+import 'models.dart';
+
+final _file = File("${Directory.current.path}/files/input.exe");
+late Uint8List _testKey;
+
 void main() {
-  final start = DateTime.now().millisecondsSinceEpoch;
-  final userA = AppCrypto.generateECKeyPair();
-  final userB = AppCrypto.generateECKeyPair();
-  final sharedKey =
-      AppCrypto.deriveSharedSecret(userA.privateKey, userB.publicKey);
+  _testKey = base64Decode(
+      AppCrypto.encodeECPublicKey(AppCrypto.generateECKeyPair().publicKey));
+  _benchmarkSharedKey();
+  _benchmarkEncryption();
+  _benchmarkHmacGeneration();
+}
 
-  final file = File("${Directory.current.path}/files/input.exe");
-  final endDeriveSharedKey = DateTime.now().millisecondsSinceEpoch;
-  print("Benchmark derive shared key: ${(endDeriveSharedKey - start)}ms");
-  final hmac = AppCrypto.generateHMAC(sharedKey, file.readAsBytesSync());
-  print("HMAC ${hex.encode(hmac)}");
-  final end = DateTime.now().millisecondsSinceEpoch;
-  print("Benchmark generate HMAC: ${(end - start)}ms");
+void _benchmarkSharedKey() {
+  final benchmark = BenchmarkTimer("share key derive");
 
-  ///Benchmark encryption
-  final startEnc = DateTime.now().millisecondsSinceEpoch;
-  AppCrypto.encryptAES(file.readAsBytesSync(), sharedKey);
-  final endEnc = DateTime.now().millisecondsSinceEpoch;
+  benchmark.run(() {
+    final userA = AppCrypto.generateECKeyPair();
+    final userB = AppCrypto.generateECKeyPair();
+    AppCrypto.deriveSharedSecret(userA.privateKey, userB.publicKey);
+  });
+}
 
-  print("Benchmark encryption: ${(endEnc - startEnc)}ms");
+void _benchmarkHmacGeneration() {
+  final benchmark = BenchmarkTimer("hmac generation");
+
+  benchmark.run(() {
+    AppCrypto.generateHMAC(_testKey, _file.readAsBytesSync());
+  });
+}
+
+void _benchmarkEncryption() {
+  final benchmark = BenchmarkTimer("file encryption");
+  benchmark.run(() {
+    AppCrypto.encryptAES(_file.readAsBytesSync(), _testKey);
+  });
 }
