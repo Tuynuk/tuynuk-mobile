@@ -18,7 +18,9 @@ class _StatusLoggerState extends State<StatusLogger> {
   void initState() {
     widget._controller.onStateChanged((state) {
       WidgetsBinding.instance.addPostFrameCallback((callback) {
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       });
     });
     super.initState();

@@ -30,7 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  image: ^4.0.15
+  flutter_localizations:
+    sdk: flutter
   pointycastle: ^3.9.1
   url_launcher: ^6.3.0
   file_picker: ^8.0.6
@@ -41,6 +42,8 @@ dependencies:
   share_plus: ^9.0.0
   background_downloader: 7.9.1
   quick_actions: ^1.0.7
+  flutter_bloc: ^8.1.6
+  encrypt_shared_preferences: ^0.7.5
   signalr_netcore:
     git:
       url: https://github.com/xaldarof/signalr_client_plus.git
@@ -49,6 +52,10 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
+  envied: ^0.5.4+1
+
+dependency_overrides:
+  intl: 0.19.0
 
 dev_dependencies:
   flutter_test:
@@ -61,13 +68,15 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
+  build_runner: ^2.4.11
+  envied_generator: ^0.5.4+1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  generate: true # Add this line
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -102,3 +111,12 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/logo_dark.png"
   min_sdk_android: 24
+
+
+targets:
+  $default:
+    builders:
+      envied_generator|envied:
+        options:
+          path: ../env.env
+          override: true

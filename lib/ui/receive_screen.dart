@@ -8,14 +8,16 @@ import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
+import 'package:safe_file_sender/ui/theme.dart';
+import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
+import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
-import 'package:safe_file_sender/widgets/encrypted_key_matrix.dart';
-import 'package:safe_file_sender/widgets/status_logger.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'crypto/crypto.dart';
-import 'dev/logger.dart';
+import '../crypto/crypto.dart';
+import '../dev/logger.dart';
+import 'widgets/status_logger.dart';
 
 class ReceiveScreen extends StatefulWidget {
   const ReceiveScreen({super.key});
@@ -92,9 +94,9 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        "Create session",
-                        style: TextStyle(fontFamily: "Hack"),
+                    : Text(
+                        context.localization.createSession,
+                        style: AppTheme.textTheme.titleMedium,
                       ),
               ),
               const Padding(
@@ -115,18 +117,14 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                       },
                       child: Text(
                         _identifier!,
-                        style: const TextStyle(
-                            fontFamily: "Hack",
-                            color: Colors.white,
-                            fontSize: 20),
+                        style: AppTheme.textTheme.titleMedium
+                            ?.copyWith(fontSize: 20),
                       ),
                     ),
-                    const Text(
-                      "Tap to copy",
-                      style: TextStyle(
-                          fontFamily: "Hack",
-                          color: Colors.white54,
-                          fontSize: 12),
+                    Text(
+                      context.localization.tapToCopy,
+                      style: AppTheme.textTheme.titleMedium
+                          ?.copyWith(color: Colors.white54, fontSize: 12),
                     ),
                   ],
                 ),
@@ -150,7 +148,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     setState(() {});
     await _connectionClient.connect();
 
-    if (!context.mounted) return;
+    if (!mounted) return;
     if (_connectionClient.isConnected) {
       _receiverStateController.logStatus(TransferStateEnum.connected);
       _receiverStateController.logStatus(TransferStateEnum.generatingKey);
@@ -162,7 +160,9 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     } else {
       _receiverStateController.logStatus(TransferStateEnum.connectionError);
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override

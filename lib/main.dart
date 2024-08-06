@@ -1,47 +1,77 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:safe_file_sender/common/constants.dart';
+import 'package:safe_file_sender/models/path_values.dart';
+import 'package:safe_file_sender/models/pref_keys.dart';
 import 'package:safe_file_sender/dev/logger.dart';
-import 'package:safe_file_sender/receive_screen.dart';
-import 'package:safe_file_sender/send_screen.dart';
-import 'package:safe_file_sender/widgets/scale_tap.dart';
+import 'package:safe_file_sender/l10n/gen/app_localizations.dart';
+import 'package:safe_file_sender/models/environment.dart';
+import 'package:safe_file_sender/ui/main/bloc/main_bloc.dart';
+import 'package:safe_file_sender/ui/receive_screen.dart';
+import 'package:safe_file_sender/ui/send_screen.dart';
+import 'package:safe_file_sender/ui/theme.dart';
+import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
+import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
-  runApp(const SafeApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  await EncryptedSharedPreferences.initialize(Environment.key);
+  runApp(
+    SafeApp(),
+  );
 }
 
 class SafeApp extends StatelessWidget {
-  const SafeApp({super.key});
+  SafeApp({super.key});
+
+  final MainBloc _bloc = MainBloc();
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      routes: {
-        "/send": (context) => SendScreen(
-            sharedFile:
-                ModalRoute.of(context)?.settings.arguments as SharedMediaFile?),
-        "/receive": (context) => const ReceiveScreen(),
-      },
-      debugShowCheckedModeBanner: false,
-      title: 'Tuynuk',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: false,
+    return BlocProvider<MainBloc>(
+      create: (_) => _bloc,
+      child: BlocConsumer<MainBloc, MainState>(
+        builder: (context, state) {
+          return MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routes: {
+              PathValues.send: (context) => SendScreen(
+                  sharedFile: ModalRoute.of(context)?.settings.arguments
+                      as SharedMediaFile?),
+              PathValues.receive: (context) => const ReceiveScreen(),
+            },
+            locale: Locale(EncryptedSharedPreferences.getInstance().getString(
+                PrefKeys.localeCode,
+                defaultValue:
+                    AppLocalizations.supportedLocales.first.languageCode)!),
+            debugShowCheckedModeBanner: false,
+            onGenerateTitle: (context) => context.localization.appName,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+              useMaterial3: false,
+            ),
+            home: const TuynukHomePage(),
+          );
+        },
+        listener: (context, state) {
+          //
+        },
       ),
-      home: const TuynukHomePage(title: 'Tuynuk'),
     );
   }
 }
 
 class TuynukHomePage extends StatefulWidget {
-  const TuynukHomePage({super.key, required this.title});
-
-  final String title;
+  const TuynukHomePage({super.key});
 
   @override
   State<TuynukHomePage> createState() => _TuynukHomePageState();
@@ -52,18 +82,20 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
 
   @override
   void initState() {
-    _handleSharingIntent();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    _initQuickActions();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((value) {
+      _handleSharingIntent();
+      _initQuickActions();
+    });
   }
 
   _handleAction(String actionType) {
-    if (actionType == 'send') {
-      Navigator.pushNamed(context, "/send");
+    if (actionType == PathValues.send) {
+      Navigator.pushNamed(context, PathValues.send);
     }
-    if (actionType == 'receive') {
-      Navigator.pushNamed(context, "/receive");
+    if (actionType == PathValues.receive) {
+      Navigator.pushNamed(context, PathValues.receive);
     }
   }
 
@@ -74,14 +106,13 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
     });
 
     quickActions.setShortcutItems(<ShortcutItem>[
-      const ShortcutItem(
-          type: 'receive',
-          localizedTitle: 'Receive',
+    ShortcutItem(
+          type: PathValues.receive,
+          localizedTitle: context.localization.receive,
           icon: 'round_arrow_downward_24'),
-      const ShortcutItem(
-          type: 'send',
-          localizedTitle: 'Send',
-          icon: 'baseline_arrow_upward_24'),
+      ShortcutItem(
+          type: PathValues.send,
+          localizedTitle: context.localization.send,
     ]);
   }
 
@@ -97,7 +128,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
       _sharingIntentSubscription =
           ReceiveSharingIntent.instance.getMediaStream().listen((value) {
         if (!Navigator.canPop(context) && value.isNotEmpty) {
-          Navigator.pushNamed(context, "/send", arguments: value.first);
+          Navigator.pushNamed(context, PathValues.send, arguments: value.first);
           ReceiveSharingIntent.instance.reset();
         }
         logMessage(value.map((f) => f.toMap()));
@@ -106,7 +137,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
       });
       ReceiveSharingIntent.instance.getInitialMedia().then((value) {
         if (value.isNotEmpty) {
-          Navigator.pushNamed(context, "/send", arguments: value.first);
+          Navigator.pushNamed(context, PathValues.send, arguments: value.first);
           ReceiveSharingIntent.instance.reset();
         }
       });
@@ -122,26 +153,51 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
       body: Stack(
         children: [
           Align(
+            alignment: Alignment.topRight,
+            child: DropdownButton<Locale>(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              underline: const SizedBox.shrink(),
+              icon: const SizedBox.shrink(),
+              borderRadius: BorderRadius.circular(12),
+              dropdownColor: Colors.deepPurple[300],
+              hint: Text(context.localization.language,
+                  style: AppTheme.textTheme.titleMedium),
+              onChanged: (Locale? locale) {
+                if (locale == null) return;
+                context.read<MainBloc>().add(UpdateLocalization(locale));
+              },
+              items: AppLocalizations.supportedLocales.map((e) {
+                return DropdownMenuItem(
+                  value: Locale(e.languageCode, ''),
+                  child: Text(
+                    e.languageCode,
+                    style: AppTheme.textTheme.titleMedium,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          Align(
             alignment: Alignment.center,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, "/send");
+                    Navigator.pushNamed(context, PathValues.send);
                   },
-                  child: const Text(
-                    "Send file",
-                    style: TextStyle(fontFamily: "Hack"),
+                  child: Text(
+                    context.localization.send,
+                    style: AppTheme.textTheme.titleMedium,
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, "/receive");
+                    Navigator.pushNamed(context, PathValues.receive);
                   },
-                  child: const Text(
-                    "Receive file",
-                    style: TextStyle(fontFamily: "Hack"),
+                  child: Text(
+                    context.localization.receive,
+                    style: AppTheme.textTheme.titleMedium,
                   ),
                 ),
               ],
@@ -151,15 +207,15 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
             alignment: Alignment.bottomCenter,
             child: ScaleTap(
               onPressed: () {
-                launchUrl(Uri.parse("https://github.com/xaldarof/safe_file"),
+                launchUrl(Uri.parse(Constants.sourceUrl),
                     mode: LaunchMode.externalApplication);
               },
               child: Container(
                 margin: const EdgeInsets.all(12),
-                child: const Text(
-                  "Source code",
-                  style: TextStyle(
-                      fontFamily: "Hack", color: Colors.white60, fontSize: 8),
+                child: Text(
+                  context.localization.sourceCode,
+                  style: AppTheme.textTheme.titleMedium
+                      ?.copyWith(color: Colors.white60, fontSize: 8),
                 ),
               ),
             ),

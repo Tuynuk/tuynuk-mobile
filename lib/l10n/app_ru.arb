@@ -1,0 +1,12 @@
+{
+  "send": "Отправить файл",
+  "receive": "Получить файл",
+  "keyDerivationInfo": "Этот текст был получен из ключа шифрования",
+  "sourceCode": "Исходный код",
+  "tapToCopy": "Нажмите, чтобы скопировать",
+  "createSession": "Создать сессию",
+  "selectFile":"Выбрать файл",
+  "inputSessionId":"Введите ID сессии",
+  "appName": "Tuynuk",
+  "language": "Язык"
+}

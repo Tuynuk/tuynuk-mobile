@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -13,12 +12,14 @@ import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
+import 'package:safe_file_sender/ui/theme.dart';
+import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
+import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
+import 'package:safe_file_sender/ui/widgets/snap_effect.dart';
+import 'package:safe_file_sender/ui/widgets/status_logger.dart';
+import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
-import 'package:safe_file_sender/widgets/encrypted_key_matrix.dart';
-import 'package:safe_file_sender/widgets/scale_tap.dart';
-import 'package:safe_file_sender/widgets/snap_effect.dart';
-import 'package:safe_file_sender/widgets/status_logger.dart';
 
 class SendScreen extends StatefulWidget {
   final SharedMediaFile? sharedFile;
@@ -96,12 +97,12 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                 padding: EdgeInsets.all(24),
               ),
               TextField(
-                style: const TextStyle(fontFamily: "Hack", color: Colors.white),
+                style: AppTheme.textTheme.titleMedium,
                 controller: _textEditingController,
                 decoration: InputDecoration(
-                  hintStyle: const TextStyle(
-                      color: Colors.white54, fontFamily: "Hack"),
-                  hintText: "Input session id",
+                  hintStyle: AppTheme.textTheme.titleMedium
+                      ?.copyWith(color: Colors.white54),
+                  hintText: context.localization.inputSessionId,
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: Colors.white60)),
@@ -129,9 +130,9 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        "Send",
-                        style: TextStyle(fontFamily: "Hack"),
+                    : Text(
+                        context.localization.send,
+                        style: AppTheme.textTheme.titleMedium,
                       ),
               ),
               const Padding(
@@ -161,10 +162,9 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                     height: 32,
                     alignment: Alignment.center,
                     child: _selectedFile == null
-                        ? const Text(
-                            "Select file",
-                            style: TextStyle(
-                                color: Colors.white, fontFamily: "Hack"),
+                        ? Text(
+                            context.localization.selectFile,
+                            style: AppTheme.textTheme.titleMedium,
                           )
                         : ListView.builder(
                             itemExtent: 34,
@@ -176,7 +176,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                                   .padLeft(8, '0');
                               return Text(
                                 bit,
-                                style: const TextStyle(color: Colors.white),
+                                style: AppTheme.textTheme.titleMedium,
                               );
                             },
                           ),
