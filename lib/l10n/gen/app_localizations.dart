@@ -65,8 +65,8 @@ abstract class AppLocalizations {
 
   final String localeName;
 
-  static AppLocalizations? of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
   static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
@@ -98,13 +98,13 @@ abstract class AppLocalizations {
   /// No description provided for @send.
   ///
   /// In en, this message translates to:
-  /// **'Send'**
+  /// **'Send file'**
   String get send;
 
   /// No description provided for @receive.
   ///
   /// In en, this message translates to:
-  /// **'Receive'**
+  /// **'Receive receive'**
   String get receive;
 
   /// No description provided for @keyDerivationInfo.
@@ -112,6 +112,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This text were derived from the encryption key'**
   String get keyDerivationInfo;
+
+  /// No description provided for @sourceCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Source code'**
+  String get sourceCode;
+
+  /// No description provided for @tapToCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to copy'**
+  String get tapToCopy;
+
+  /// No description provided for @createSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Create session'**
+  String get createSession;
+
+  /// No description provided for @selectFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select file'**
+  String get selectFile;
+
+  /// No description provided for @inputSessionId.
+  ///
+  /// In en, this message translates to:
+  /// **'Input session ID'**
+  String get inputSessionId;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

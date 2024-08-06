@@ -1,43 +1,66 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/l10n/gen/app_localizations.dart';
+import 'package:safe_file_sender/ui/main/bloc/main_bloc.dart';
 import 'package:safe_file_sender/ui/receive_screen.dart';
 import 'package:safe_file_sender/ui/send_screen.dart';
 import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
+import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
-  runApp(const SafeApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  EncryptedSharedPreferences.initialize("");
+  runApp(
+    SafeApp(
+      locale: EncryptedSharedPreferences.getInstance().getString('localeCode'),
+    ),
+  );
 }
 
 class SafeApp extends StatelessWidget {
-  const SafeApp({super.key});
+  final String? locale;
+
+  const SafeApp({super.key, this.locale});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      routes: {
-        "/send": (context) => SendScreen(
-            sharedFile:
-                ModalRoute.of(context)?.settings.arguments as SharedMediaFile?),
-        "/receive": (context) => const ReceiveScreen(),
-      },
-      debugShowCheckedModeBanner: false,
-      title: 'Tuynuk',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: false,
+    return BlocProvider(
+      create: (_) => MainBloc(),
+      child: BlocConsumer<MainBloc, MainState>(
+        builder: (context, state) {
+          return MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routes: {
+              "/send": (context) => SendScreen(
+                  sharedFile: ModalRoute.of(context)?.settings.arguments
+                      as SharedMediaFile?),
+              "/receive": (context) => const ReceiveScreen(),
+            },
+            locale: Locale(EncryptedSharedPreferences.getInstance()
+                .getString('localeCode', defaultValue: "en")!),
+            debugShowCheckedModeBanner: false,
+            title: 'Tuynuk',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+              useMaterial3: false,
+            ),
+            home: const TuynukHomePage(title: 'Tuynuk'),
+          );
+        },
+        listener: (context, state) {
+          //
+        },
       ),
-      home: const TuynukHomePage(title: 'Tuynuk'),
     );
   }
 }
@@ -126,6 +149,35 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
       body: Stack(
         children: [
           Align(
+            alignment: Alignment.topRight,
+            child: DropdownButton<Locale>(
+              underline: null,
+              icon: null,
+              hint: Text(
+                context.localization.inputSessionId,
+                style: const TextStyle(color: Colors.white),
+              ),
+              onChanged: (Locale? locale) {
+                if (locale == null) return;
+                context.read<MainBloc>().add(UpdateLocalization(locale));
+              },
+              items: const [
+                DropdownMenuItem(
+                  value: Locale('en', ''),
+                  child: Text('English'),
+                ),
+                DropdownMenuItem(
+                  value: Locale('ru', ''),
+                  child: Text('Русский'),
+                ),
+                DropdownMenuItem(
+                  value: Locale('uz', ''),
+                  child: Text('O‘zbekcha'),
+                ),
+              ],
+            ),
+          ),
+          Align(
             alignment: Alignment.center,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -135,8 +187,8 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                     Navigator.pushNamed(context, "/send");
                   },
                   child: Text(
-                    AppLocalizations.of(context)!.send,
-                    style: TextStyle(fontFamily: "Hack"),
+                    context.localization.send,
+                    style: const TextStyle(fontFamily: "Hack"),
                   ),
                 ),
                 ElevatedButton(
@@ -144,8 +196,8 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                     Navigator.pushNamed(context, "/receive");
                   },
                   child: Text(
-                    AppLocalizations.of(context)!.receive,
-                    style: TextStyle(fontFamily: "Hack"),
+                    context.localization.receive,
+                    style: const TextStyle(fontFamily: "Hack"),
                   ),
                 ),
               ],
@@ -160,9 +212,9 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
               },
               child: Container(
                 margin: const EdgeInsets.all(12),
-                child: const Text(
-                  "Source code",
-                  style: TextStyle(
+                child: Text(
+                  context.localization.sourceCode,
+                  style: const TextStyle(
                       fontFamily: "Hack", color: Colors.white60, fontSize: 8),
                 ),
               ),

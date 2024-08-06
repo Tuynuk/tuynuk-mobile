@@ -1,5 +1,10 @@
 {
-  "send":"Jonatish",
-  "receive":"Qabul qilish",
-  "keyDerivationInfo":"Bu matn shifrlash kalitidan olingan"
+  "send": "Faylni yuborish",
+  "receive": "Faylni qabul qilish",
+  "keyDerivationInfo": "Bu matn shifrlash kalitidan olingan",
+  "sourceCode": "Dastur manbasi",
+  "tapToCopy": "Nusxa olish uchun bosing",
+  "createSession": "Sessiya yaratish",
+  "selectFile":"Fayl tanlash",
+   "inputSessionId":"Sessiya ID kiriting"
 }

@@ -9,6 +9,7 @@ import 'package:safe_file_sender/io/socket_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
 import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
+import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
 import 'package:share_plus/share_plus.dart';
@@ -92,8 +93,8 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        "Create session",
+                    : Text(
+                        context.localization.createSession,
                         style: TextStyle(fontFamily: "Hack"),
                       ),
               ),
@@ -121,9 +122,9 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                             fontSize: 20),
                       ),
                     ),
-                    const Text(
-                      "Tap to copy",
-                      style: TextStyle(
+                    Text(
+                      context.localization.tapToCopy,
+                      style: const TextStyle(
                           fontFamily: "Hack",
                           color: Colors.white54,
                           fontSize: 12),

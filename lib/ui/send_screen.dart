@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
@@ -17,6 +16,7 @@ import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
 import 'package:safe_file_sender/ui/widgets/snap_effect.dart';
 import 'package:safe_file_sender/ui/widgets/status_logger.dart';
+import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
 
@@ -101,7 +101,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                 decoration: InputDecoration(
                   hintStyle: const TextStyle(
                       color: Colors.white54, fontFamily: "Hack"),
-                  hintText: "Input session id",
+                  hintText: context.localization.inputSessionId,
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: Colors.white60)),
@@ -129,8 +129,8 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        "Send",
+                    : Text(
+                        context.localization.send,
                         style: TextStyle(fontFamily: "Hack"),
                       ),
               ),
@@ -161,8 +161,8 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                     height: 32,
                     alignment: Alignment.center,
                     child: _selectedFile == null
-                        ? const Text(
-                            "Select file",
+                        ? Text(
+                            context.localization.selectFile,
                             style: TextStyle(
                                 color: Colors.white, fontFamily: "Hack"),
                           )

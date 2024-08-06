@@ -1,5 +1,10 @@
 {
-  "send":"Send",
-  "receive":"Receive",
-  "keyDerivationInfo":"This text were derived from the encryption key"
+  "send":"Send file",
+  "receive":"Receive receive",
+  "keyDerivationInfo":"This text were derived from the encryption key",
+  "sourceCode":"Source code",
+  "tapToCopy":"Tap to copy",
+  "createSession":"Create session",
+  "selectFile":"Select file",
+  "inputSessionId":"Input session ID"
 }
