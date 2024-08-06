@@ -6,5 +6,7 @@
   "tapToCopy": "Нажмите, чтобы скопировать",
   "createSession": "Создать сессию",
   "selectFile":"Выбрать файл",
-  "inputSessionId":"Введите ID сессии"
+  "inputSessionId":"Введите ID сессии",
+  "appName": "Tuynuk",
+  "language": "Язык"
 }

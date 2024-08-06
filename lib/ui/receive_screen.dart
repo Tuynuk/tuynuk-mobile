@@ -148,7 +148,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     setState(() {});
     await _connectionClient.connect();
 
-    if (!context.mounted) return;
+    if (!mounted) return;
     if (_connectionClient.isConnected) {
       _receiverStateController.logStatus(TransferStateEnum.connected);
       _receiverStateController.logStatus(TransferStateEnum.generatingKey);
@@ -160,7 +160,9 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     } else {
       _receiverStateController.logStatus(TransferStateEnum.connectionError);
     }
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override

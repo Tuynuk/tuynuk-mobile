@@ -142,6 +142,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Input session ID'**
   String get inputSessionId;
+
+  /// No description provided for @appName.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuynuk'**
+  String get appName;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

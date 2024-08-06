@@ -23,24 +23,21 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  EncryptedSharedPreferences.initialize(Environment.key);
+  await EncryptedSharedPreferences.initialize(Environment.key);
   runApp(
-    SafeApp(
-      locale: EncryptedSharedPreferences.getInstance()
-          .getString(PrefKeys.localeCode),
-    ),
+    SafeApp(),
   );
 }
 
 class SafeApp extends StatelessWidget {
-  final String? locale;
+  SafeApp({super.key});
 
-  const SafeApp({super.key, this.locale});
+  final MainBloc _bloc = MainBloc();
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => MainBloc(),
+    return BlocProvider<MainBloc>(
+      create: (_) => _bloc,
       child: BlocConsumer<MainBloc, MainState>(
         builder: (context, state) {
           return MaterialApp(
@@ -52,15 +49,17 @@ class SafeApp extends StatelessWidget {
                       as SharedMediaFile?),
               PathValues.receive: (context) => const ReceiveScreen(),
             },
-            locale: Locale(EncryptedSharedPreferences.getInstance()
-                .getString('localeCode', defaultValue: "en")!),
+            locale: Locale(EncryptedSharedPreferences.getInstance().getString(
+                PrefKeys.localeCode,
+                defaultValue:
+                    AppLocalizations.supportedLocales.first.languageCode)!),
             debugShowCheckedModeBanner: false,
-            title: 'Tuynuk',
+            onGenerateTitle: (context) => context.localization.appName,
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
               useMaterial3: false,
             ),
-            home: const TuynukHomePage(title: 'Tuynuk'),
+            home: const TuynukHomePage(),
           );
         },
         listener: (context, state) {
@@ -72,9 +71,7 @@ class SafeApp extends StatelessWidget {
 }
 
 class TuynukHomePage extends StatefulWidget {
-  const TuynukHomePage({super.key, required this.title});
-
-  final String title;
+  const TuynukHomePage({super.key});
 
   @override
   State<TuynukHomePage> createState() => _TuynukHomePageState();
@@ -85,17 +82,19 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
 
   @override
   void initState() {
-    _handleSharingIntent();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    _initQuickActions();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((value) {
+      _handleSharingIntent();
+      _initQuickActions();
+    });
   }
 
   _handleAction(String actionType) {
-    if (actionType == 'send') {
+    if (actionType == PathValues.send) {
       Navigator.pushNamed(context, PathValues.send);
     }
-    if (actionType == 'receive') {
+    if (actionType == PathValues.receive) {
       Navigator.pushNamed(context, PathValues.receive);
     }
   }
@@ -108,11 +107,11 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
 
     quickActions.setShortcutItems(<ShortcutItem>[
       ShortcutItem(
-          type: 'receive',
+          type: PathValues.receive,
           localizedTitle: context.localization.receive,
           icon: 'round_arrow_downward_24'),
       ShortcutItem(
-          type: 'send',
+          type: PathValues.send,
           localizedTitle: context.localization.send,
           icon: 'baseline_arrow_upward_24'),
     ]);
@@ -157,28 +156,26 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
           Align(
             alignment: Alignment.topRight,
             child: DropdownButton<Locale>(
-              underline: null,
-              icon: null,
-              hint: Text(context.localization.inputSessionId,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              underline: const SizedBox.shrink(),
+              icon: const SizedBox.shrink(),
+              borderRadius: BorderRadius.circular(12),
+              dropdownColor: Colors.deepPurple[300],
+              hint: Text(context.localization.language,
                   style: AppTheme.textTheme.titleMedium),
               onChanged: (Locale? locale) {
                 if (locale == null) return;
                 context.read<MainBloc>().add(UpdateLocalization(locale));
               },
-              items: const [
-                DropdownMenuItem(
-                  value: Locale('en', ''),
-                  child: Text('English'),
-                ),
-                DropdownMenuItem(
-                  value: Locale('ru', ''),
-                  child: Text('Русский'),
-                ),
-                DropdownMenuItem(
-                  value: Locale('uz', ''),
-                  child: Text('O‘zbekcha'),
-                ),
-              ],
+              items: AppLocalizations.supportedLocales.map((e) {
+                return DropdownMenuItem(
+                  value: Locale(e.languageCode, ''),
+                  child: Text(
+                    e.languageCode,
+                    style: AppTheme.textTheme.titleMedium,
+                  ),
+                );
+              }).toList(),
             ),
           ),
           Align(

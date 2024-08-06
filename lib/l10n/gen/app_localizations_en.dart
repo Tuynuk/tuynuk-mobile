@@ -27,4 +27,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inputSessionId => 'Input session ID';
+
+  @override
+  String get appName => 'Tuynuk';
+
+  @override
+  String get language => 'Language';
 }

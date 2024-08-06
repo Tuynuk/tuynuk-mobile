@@ -6,5 +6,7 @@
   "tapToCopy":"Tap to copy",
   "createSession":"Create session",
   "selectFile":"Select file",
-  "inputSessionId":"Input session ID"
+  "inputSessionId":"Input session ID",
+  "appName": "Tuynuk",
+  "language": "Language"
 }

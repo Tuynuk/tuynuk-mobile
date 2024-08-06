@@ -5,6 +5,8 @@
   "sourceCode": "Dastur manbasi",
   "tapToCopy": "Nusxa olish uchun bosing",
   "createSession": "Sessiya yaratish",
-  "selectFile":"Fayl tanlash",
-   "inputSessionId":"Sessiya ID kiriting"
+  "selectFile": "Fayl tanlash",
+  "inputSessionId": "Sessiya ID kiriting",
+  "appName": "Tuynuk",
+  "language": "Til"
 }

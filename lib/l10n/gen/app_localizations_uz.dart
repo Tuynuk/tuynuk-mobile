@@ -27,4 +27,10 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get inputSessionId => 'Sessiya ID kiriting';
+
+  @override
+  String get appName => 'Tuynuk';
+
+  @override
+  String get language => 'Til';
 }
