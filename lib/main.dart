@@ -7,8 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:safe_file_sender/common/constants.dart';
+import 'package:safe_file_sender/models/path_values.dart';
+import 'package:safe_file_sender/models/pref_keys.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/l10n/gen/app_localizations.dart';
+import 'package:safe_file_sender/models/environment.dart';
 import 'package:safe_file_sender/ui/main/bloc/main_bloc.dart';
 import 'package:safe_file_sender/ui/receive_screen.dart';
 import 'package:safe_file_sender/ui/send_screen.dart';
@@ -18,10 +22,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  EncryptedSharedPreferences.initialize("");
+  EncryptedSharedPreferences.initialize(Environment.key);
   runApp(
     SafeApp(
-      locale: EncryptedSharedPreferences.getInstance().getString('localeCode'),
+      locale: EncryptedSharedPreferences.getInstance()
+          .getString(PrefKeys.localeCode),
     ),
   );
 }
@@ -41,10 +46,10 @@ class SafeApp extends StatelessWidget {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             routes: {
-              "/send": (context) => SendScreen(
+              PathValues.send: (context) => SendScreen(
                   sharedFile: ModalRoute.of(context)?.settings.arguments
                       as SharedMediaFile?),
-              "/receive": (context) => const ReceiveScreen(),
+              PathValues.receive: (context) => const ReceiveScreen(),
             },
             locale: Locale(EncryptedSharedPreferences.getInstance()
                 .getString('localeCode', defaultValue: "en")!),
@@ -87,10 +92,10 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
 
   _handleAction(String actionType) {
     if (actionType == 'send') {
-      Navigator.pushNamed(context, "/send");
+      Navigator.pushNamed(context, PathValues.send);
     }
     if (actionType == 'receive') {
-      Navigator.pushNamed(context, "/receive");
+      Navigator.pushNamed(context, PathValues.receive);
     }
   }
 
@@ -101,13 +106,13 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
     });
 
     quickActions.setShortcutItems(<ShortcutItem>[
-      const ShortcutItem(
+      ShortcutItem(
           type: 'receive',
-          localizedTitle: 'Receive',
+          localizedTitle: context.localization.receive,
           icon: 'round_arrow_downward_24'),
-      const ShortcutItem(
+      ShortcutItem(
           type: 'send',
-          localizedTitle: 'Send',
+          localizedTitle: context.localization.send,
           icon: 'baseline_arrow_upward_24'),
     ]);
   }
@@ -124,7 +129,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
       _sharingIntentSubscription =
           ReceiveSharingIntent.instance.getMediaStream().listen((value) {
         if (!Navigator.canPop(context) && value.isNotEmpty) {
-          Navigator.pushNamed(context, "/send", arguments: value.first);
+          Navigator.pushNamed(context, PathValues.send, arguments: value.first);
           ReceiveSharingIntent.instance.reset();
         }
         logMessage(value.map((f) => f.toMap()));
@@ -133,7 +138,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
       });
       ReceiveSharingIntent.instance.getInitialMedia().then((value) {
         if (value.isNotEmpty) {
-          Navigator.pushNamed(context, "/send", arguments: value.first);
+          Navigator.pushNamed(context, PathValues.send, arguments: value.first);
           ReceiveSharingIntent.instance.reset();
         }
       });
@@ -184,7 +189,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, "/send");
+                    Navigator.pushNamed(context, PathValues.send);
                   },
                   child: Text(
                     context.localization.send,
@@ -193,7 +198,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, "/receive");
+                    Navigator.pushNamed(context, PathValues.receive);
                   },
                   child: Text(
                     context.localization.receive,
@@ -207,7 +212,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
             alignment: Alignment.bottomCenter,
             child: ScaleTap(
               onPressed: () {
-                launchUrl(Uri.parse("https://github.com/xaldarof/safe_file"),
+                launchUrl(Uri.parse(Constants.sourceUrl),
                     mode: LaunchMode.externalApplication);
               },
               child: Container(
