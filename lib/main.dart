@@ -111,7 +111,9 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
           localizedTitle: context.localization.receive,
           icon: 'round_arrow_downward_24'),
       ShortcutItem(
-          type: PathValues.send, localizedTitle: context.localization.send),
+          type: PathValues.send,
+          localizedTitle: context.localization.send,
+          icon: 'baseline_arrow_upward_24'),
     ]);
   }
 
