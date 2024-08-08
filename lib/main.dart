@@ -92,10 +92,14 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
 
   _handleAction(String actionType) {
     if (actionType == PathValues.send) {
-      Navigator.pushNamed(context, PathValues.send);
+      if (!Navigator.canPop(context)) {
+        Navigator.pushNamed(context, PathValues.send);
+      }
     }
     if (actionType == PathValues.receive) {
-      Navigator.pushNamed(context, PathValues.receive);
+      if (!Navigator.canPop(context)) {
+        Navigator.pushNamed(context, PathValues.receive);
+      }
     }
   }
 
