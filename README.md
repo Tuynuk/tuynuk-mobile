@@ -37,7 +37,11 @@ need a secure and ephemeral file transfer solution.
    ```bash
    flutter pub get
 
-3. Run the application:
+3. Configure project
+    ```bash
+   sh sync.sh
+
+4. Run the application:
    ```bash
    flutter run
 
