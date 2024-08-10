@@ -159,7 +159,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                     _clear();
                   },
                   child: Container(
-                    height: 32,
+                    height: 42,
                     alignment: Alignment.center,
                     child: _selectedFile == null
                         ? Text(

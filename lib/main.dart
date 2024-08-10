@@ -113,7 +113,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
       ShortcutItem(
           type: PathValues.receive,
           localizedTitle: context.localization.receive,
-          icon: 'round_arrow_downward_24'),
+          icon: 'baseline_arrow_downward_24'),
       ShortcutItem(
           type: PathValues.send,
           localizedTitle: context.localization.send,
@@ -170,6 +170,7 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
               onChanged: (Locale? locale) {
                 if (locale == null) return;
                 context.read<MainBloc>().add(UpdateLocalization(locale));
+                _initQuickActions();
               },
               items: AppLocalizations.supportedLocales.map((e) {
                 return DropdownMenuItem(
