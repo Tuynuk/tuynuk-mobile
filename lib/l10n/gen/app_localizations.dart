@@ -104,7 +104,7 @@ abstract class AppLocalizations {
   /// No description provided for @receive.
   ///
   /// In en, this message translates to:
-  /// **'Receive receive'**
+  /// **'Receive file'**
   String get receive;
 
   /// No description provided for @keyDerivationInfo.

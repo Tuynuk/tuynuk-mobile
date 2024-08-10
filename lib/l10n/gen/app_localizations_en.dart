@@ -8,7 +8,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get send => 'Send file';
 
   @override
-  String get receive => 'Receive receive';
+  String get receive => 'Receive file';
 
   @override
   String get keyDerivationInfo => 'This text were derived from the encryption key';
