@@ -1,5 +1,3 @@
-![alt text](https://lokdon.com/wp-content/uploads/2021/09/Subtitle_01-2.jpg)
-
 # Tuynuk
 
 ## Overview
@@ -9,6 +7,8 @@ app, users can send and receive encrypted files within disposable sessions, ensu
 remains private and is not stored long-term. Built using Flutter and Dart, the app leverages
 advanced cryptographic techniques to provide robust security features, making it ideal for users who
 need a secure and ephemeral file transfer solution.
+
+![alt text](https://lokdon.com/wp-content/uploads/2021/09/Subtitle_01-2.jpg)
 
 ## Features
 
