@@ -115,6 +115,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
               ),
               ElevatedButton(
                 onPressed: () {
+                  logMessage(_senderStateController.state);
                   if (_textEditingController.text.trim().isNotEmpty &&
                       _selectedFile != null &&
                       _senderStateController.canSend) {
@@ -168,7 +169,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                           )
                         : ListView.builder(
                             itemExtent: 34,
-                            itemCount: (_fileBytes.length * .1).toInt(),
+                            itemCount: (_fileBytes.length * .01).toInt(),
                             scrollDirection: Axis.horizontal,
                             itemBuilder: (e, index) {
                               final bit = _fileBytes[index]
@@ -221,6 +222,9 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
           AppCrypto.encodeECPublicKey(_publicKey!));
     } else {
       _senderStateController.logStatus(TransferStateEnum.connectionError);
+    }
+    if (mounted) {
+      setState(() {});
     }
   }
 
