@@ -178,12 +178,12 @@ class _ReceiveScreenState extends State<ReceiveScreen>
 
   @override
   Future<void> onPublicKeyReceived(String publicKey) async {
-    logMessage("PublicKey : $publicKey");
+    logMessage('PublicKey : $publicKey');
     _receiverStateController.logStatus(TransferStateEnum.sharedKeyDeriving);
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
     _receiverStateController.logStatus(TransferStateEnum.sharedKeyDerived);
-    logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
+    logMessage('Shared key derived [${sharedKey.length}] $sharedKey');
     _sharedKey = sharedKey;
     _sharedKeyDigest = hex.encode(AppCrypto.sha256Digest(_sharedKey!));
     _receiverStateController.logStatus(TransferStateEnum.sharedKeyDigest);
@@ -212,9 +212,9 @@ class _ReceiveScreenState extends State<ReceiveScreen>
           hex.encode(await AppCrypto.generateHMACIsolate(_sharedKey!, bytes));
       if (hmacLocal == hmac) {
         _receiverStateController.logStatus(TransferStateEnum.hmacSuccess);
-        logMessage("HMAC check success");
+        logMessage('HMAC check success');
       } else {
-        logMessage("HMAC check failed: local $hmacLocal  remote $hmac");
+        logMessage('HMAC check failed: local $hmacLocal  remote $hmac');
         _receiverStateController.logStatus(TransferStateEnum.hmacError);
         _clear();
         return;
@@ -223,7 +223,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
       final decBytes = await AppCrypto.decryptAESInIsolate(bytes, _sharedKey!);
 
       final decryptedFile = File(
-          "${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName");
+          '${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName');
       _receiverStateController.logStatus(TransferStateEnum.writingFile);
       decryptedFile.writeAsBytesSync(decBytes);
 

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ReceiveBottomSheetDialog {
@@ -29,9 +28,9 @@ class ReceiveBottomSheetDialog {
                   ),
                   Padding(padding: EdgeInsets.all(12)),
                   Text(
-                    "Waiting for file...",
+                    'Waiting for file...',
                     style:
-                        TextStyle(color: Colors.white, fontFamily: "Raleway"),
+                        TextStyle(color: Colors.white, fontFamily: 'Raleway'),
                   )
                 ],
               ),

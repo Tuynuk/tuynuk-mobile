@@ -11,10 +11,10 @@ extension FileExt on File {
   bool safeDelete() {
     try {
       delete();
-      logMessage("File : $path deleted!");
+      logMessage('File : $path deleted!');
       return true;
     } catch (e) {
-      logMessage("Delete $path error");
+      logMessage('Delete $path error');
       return false;
     }
   }

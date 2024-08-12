@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SendBottomSheetDialog {
@@ -33,7 +32,7 @@ class SendBottomSheetDialog {
                     onIdentifierInput.call(textEditingController.text.trim());
                     Navigator.pop(context);
                   },
-                  child: const Text("Connect"),
+                  child: const Text('Connect'),
                 ),
               ],
             ),

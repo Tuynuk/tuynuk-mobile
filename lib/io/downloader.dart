@@ -12,31 +12,31 @@ class Downloader {
       {Function(int percentage)? onUpdate, Function()? onError}) async {
     try {
       String fileName = filePath.split('/').last;
-      logMessage("Uploading $fileName");
+      logMessage('Uploading $fileName');
       final task = UploadTask(
         taskId: DateTime.now().millisecondsSinceEpoch.toString(),
-        url: "${ConnectionClient.baseUrl}Files/UploadFile",
+        url: '${ConnectionClient.baseUrl}Files/UploadFile',
         filename: fileName,
         updates: Updates.statusAndProgress,
         baseDirectory: BaseDirectory.temporary,
-        fileField: "formFile",
+        fileField: 'formFile',
         urlQueryParameters: {
-          "sessionIdentifier": sessionId,
-          "HMAC": hmac,
+          'sessionIdentifier': sessionId,
+          'HMAC': hmac,
         },
       );
       var prev = 0;
       final response = await _downloader.upload(
         task,
         onStatus: (status) async {
-          logMessage("Upload status : $status");
+          logMessage('Upload status : $status');
           if (status == TaskStatus.failed) {
             return;
           }
         },
         onProgress: (progress) {
           final percent = (progress * 100).toInt();
-          logMessage("Upload progress : $percent");
+          logMessage('Upload progress : $percent');
           if ((prev - percent).abs() > 20 || percent == 100) {
             onUpdate?.call(percent.abs());
             prev = percent;
@@ -45,10 +45,10 @@ class Downloader {
       );
       // _downloader.cancelTaskWithId(task.taskId);
       // _downloader.destroy();
-      logMessage("Response body upload : ${response.responseBody}");
+      logMessage('Response body upload : ${response.responseBody}');
     } catch (e) {
       onError?.call();
-      logMessage("Upload error : ${e.toString()}");
+      logMessage('Upload error : ${e.toString()}');
     }
   }
 
@@ -58,7 +58,7 @@ class Downloader {
       Function(String path)? onSuccess}) async {
     try {
       final task = DownloadTask(
-        url: "${ConnectionClient.baseUrl}Files/GetFile?fileId=$fileId",
+        url: '${ConnectionClient.baseUrl}Files/GetFile?fileId=$fileId',
         updates: Updates.statusAndProgress,
         filename: fileName,
         allowPause: true,
@@ -76,13 +76,13 @@ class Downloader {
           prev = percent;
           if (percent == 100) {
             final path =
-                "${(await getApplicationDocumentsDirectory()).path}/$fileName";
+                '${(await getApplicationDocumentsDirectory()).path}/$fileName';
             onSuccess?.call(path);
           }
         }
       });
     } catch (e) {
-      logMessage("Download error : ${e.toString()}");
+      logMessage('Download error : ${e.toString()}');
       onError?.call();
     }
   }
@@ -94,6 +94,6 @@ class Downloader {
   }
 
   static void cancelAll() async {
-    _downloader.cancelTaskWithId("uploading_id");
+    _downloader.cancelTaskWithId('uploading_id');
   }
 }

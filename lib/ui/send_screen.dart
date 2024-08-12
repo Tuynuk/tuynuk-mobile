@@ -235,7 +235,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
   @override
   Future<void> onPublicKeyReceived(String publicKey) async {
-    logMessage("PublicKey : $publicKey");
+    logMessage('PublicKey : $publicKey');
     _senderStateController.logStatus(TransferStateEnum.sharedKeyDeriving);
 
     await _deriveSharedKey(publicKey);
@@ -248,7 +248,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     final sharedKey = AppCrypto.deriveSharedSecret(
         _privateKey!, AppCrypto.decodeECPublicKey(publicKey));
 
-    logMessage("Shared key derived [${sharedKey.length}] $sharedKey");
+    logMessage('Shared key derived [${sharedKey.length}] $sharedKey');
     _senderStateController.logStatus(TransferStateEnum.sharedKeyDerived);
 
     _sharedKey = sharedKey;
@@ -280,7 +280,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     _senderStateController.logStatus(TransferStateEnum.writingEncryptedFile);
 
     final encFile = File(
-        "${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}");
+        '${(await getApplicationCacheDirectory()).path}/enc_${FileUtils.fileName(_selectedFile!.path)}');
     encFile.writeAsBytesSync(_fileBytes);
 
     final String fileName = FileUtils.fileName(_selectedFile!.path);
@@ -301,7 +301,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
       _senderStateController.logStatus(TransferStateEnum.connectionError);
     }
 
-    logMessage("Sent : $sent");
+    logMessage('Sent : $sent');
     _key.currentState?.snap();
   }
 

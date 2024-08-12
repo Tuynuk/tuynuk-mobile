@@ -46,7 +46,7 @@ class _StatusLoggerState extends State<StatusLogger> {
                 child: Text(
                   e.value,
                   style: const TextStyle(
-                      color: Colors.white60, fontFamily: "Hack", fontSize: 8),
+                      color: Colors.white60, fontFamily: 'Hack', fontSize: 8),
                   textAlign: TextAlign.start,
                 ),
               ),

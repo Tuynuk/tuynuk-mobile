@@ -30,7 +30,7 @@ class ScaleTap extends StatefulWidget {
   final double? opacityMinValue;
   final bool enableFeedback;
 
-  ScaleTap({
+  const ScaleTap({super.key, 
     this.enableFeedback = true,
     this.onPressed,
     this.onLongPress,
@@ -159,7 +159,7 @@ class _ScaleTapState extends State<ScaleTap>
 class CurveSpring extends Curve {
   final SpringSimulation sim;
 
-  CurveSpring() : this.sim = _sim(70, 20);
+  CurveSpring() : sim = _sim(70, 20);
 
   @override
   double transform(double t) => sim.x(t) + t * (1 - sim.x(1.0));
