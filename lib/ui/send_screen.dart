@@ -20,6 +20,7 @@ import 'package:safe_file_sender/ui/widgets/status_logger.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
+import 'package:safe_file_sender/utils/validators.dart';
 
 class SendScreen extends StatefulWidget {
   final SharedMediaFile? sharedFile;
@@ -42,7 +43,8 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
   @override
   void initState() {
-    if (widget.sharedFile != null) {
+    if (widget.sharedFile != null &&
+        Validators.canHandleFile(FileUtils.fromSharedFile(widget.sharedFile))) {
       _selectedFile = File(widget.sharedFile!.path);
       _fileBytes = _selectedFile!.readAsBytesSync();
     }
@@ -146,12 +148,12 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                         (await FilePicker.platform.pickFiles())?.files ?? [];
                     if (files.isEmpty) return;
                     final file = File(files.first.path!);
-                    double sizeInMb = file.lengthSync() / (1024 * 1024);
-                    if (sizeInMb > 100) return;
-                    _selectedFile = file;
+                    if (Validators.canHandleFile(file)) {
+                      _selectedFile = file;
 
-                    _fileBytes = _selectedFile!.readAsBytesSync().toList();
-                    setState(() {});
+                      _fileBytes = _selectedFile!.readAsBytesSync().toList();
+                      setState(() {});
+                    }
                   }
                 },
                 child: Snappable(
