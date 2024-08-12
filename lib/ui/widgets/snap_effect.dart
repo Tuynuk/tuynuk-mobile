@@ -37,7 +37,7 @@ class Snappable extends StatefulWidget {
   final VoidCallback onSnapped;
 
   const Snappable({
-    Key? key,
+    super.key,
     required this.child,
     this.offset = const Offset(64, -32),
     this.duration = const Duration(milliseconds: 5000),
@@ -45,7 +45,7 @@ class Snappable extends StatefulWidget {
     this.numberOfBuckets = 16,
     this.snapOnTap = false,
     required this.onSnapped,
-  }) : super(key: key);
+  });
 
   @override
   SnappableState createState() => SnappableState();

@@ -13,7 +13,7 @@ import 'package:signalr_netcore/signalr_client.dart';
 class ConnectionClient {
   final BaseEventListeners _eventNotifier;
   late HubConnection? _connection;
-  static String baseUrl = "http://192.168.1.18:8088/api/";
+  static String baseUrl = 'http://192.168.1.18:8088/api/';
   final Dio _dio = Dio(
     BaseOptions(
         baseUrl: baseUrl,
@@ -26,34 +26,34 @@ class ConnectionClient {
 
   void buildSignalR() {
     _connection = HubConnectionBuilder()
-        .withUrl("http://192.168.1.18:8088/hubs/session")
+        .withUrl('http://192.168.1.18:8088/hubs/session')
         .withHubProtocol(JsonHubProtocol())
         .withSingleListener(true)
         .build();
   }
 
   Future<void> createSession(String publicKeyBase64) async {
-    _log("Creating session : $isConnected");
-    _connection?.send("CreateSession", args: [
+    _log('Creating session : $isConnected');
+    _connection?.send('CreateSession', args: [
       {
-        "publicKey": publicKeyBase64,
+        'publicKey': publicKeyBase64,
       }
     ]);
   }
 
   Future<void> joinSession(String identifier, String publicKey) async {
     try {
-      _connection?.send("JoinSession", args: [
+      _connection?.send('JoinSession', args: [
         {
-          "identifier": identifier,
-          "publicKey": publicKey,
+          'identifier': identifier,
+          'publicKey': publicKey,
         }
       ]).onError((value, trace) {
         _log(trace.toString());
       }).catchError((onError) {
         _log(onError);
       }).then((value) {
-        logMessage("Join session end");
+        logMessage('Join session end');
       });
     } catch (e) {
       logMessage(e.toString());
@@ -77,16 +77,16 @@ class ConnectionClient {
 
   Future<void> _listenEvents() async {
     _connection?.on('OnSessionCreated', (message) async {
-      _log("OnSessionCreated : $message");
+      _log('OnSessionCreated : $message');
       (_eventNotifier as ReceiverListeners)
           .onIdentifierReceived(message![0].toString());
     });
     _connection?.on('OnSessionReady', (message) async {
-      _log("OnSessionReady : $message");
+      _log('OnSessionReady : $message');
       _eventNotifier.onPublicKeyReceived(message![0].toString());
     });
     _connection?.on('OnFileUploaded', (message) async {
-      _log("OnFileUploaded : $message");
+      _log('OnFileUploaded : $message');
       (_eventNotifier as ReceiverListeners).onFileReceived(
         message![0].toString(),
         message[1].toString(),
@@ -102,7 +102,7 @@ class ConnectionClient {
       if (_connection?.state != HubConnectionState.Disconnected) return;
       await _connection?.start();
       _log(
-          "IsConnected : ${_connection?.state == HubConnectionState.Connected}");
+          'IsConnected : ${_connection?.state == HubConnectionState.Connected}');
       if (_connection?.state == HubConnectionState.Connected) {
         _listenEvents();
         _eventNotifier.onConnected();

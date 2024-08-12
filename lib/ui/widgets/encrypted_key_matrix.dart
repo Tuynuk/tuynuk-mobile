@@ -34,7 +34,7 @@ class EncryptionKeyWidget extends StatelessWidget {
           context.localization.keyDerivationInfo,
           style: const TextStyle(
             color: Colors.white30,
-            fontFamily: "Hack",
+            fontFamily: 'Hack',
             fontSize: 12,
           ),
         ),

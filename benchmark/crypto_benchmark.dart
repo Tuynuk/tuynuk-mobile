@@ -6,8 +6,8 @@ import 'package:safe_file_sender/crypto/crypto.dart';
 
 import 'models.dart';
 
-final _file = File("${Directory.current.path}/files/input.exe");
-final _outPath = File("${Directory.current.path}/files").path;
+final _file = File('${Directory.current.path}/files/input.exe');
+final _outPath = File('${Directory.current.path}/files').path;
 late Uint8List _testKey;
 
 void main() {
@@ -20,8 +20,8 @@ void main() {
 }
 
 void _benchmarkEncryptionIsolate() async {
-  final benchmark = BenchmarkTimer("file encryption isolate");
-  final File file = File("$_outPath/benchmark_encrypted_isolate.exe");
+  final benchmark = BenchmarkTimer('file encryption isolate');
+  final File file = File('$_outPath/benchmark_encrypted_isolate.exe');
   await benchmark.runAsync(() async {
     final result =
         await AppCrypto.encryptAESInIsolate(_file.readAsBytesSync(), _testKey);
@@ -31,21 +31,21 @@ void _benchmarkEncryptionIsolate() async {
 }
 
 void _benchmarkDecryptionIsolate(File path) {
-  final benchmark = BenchmarkTimer("file decryption isolate");
+  final benchmark = BenchmarkTimer('file decryption isolate');
   benchmark.runAsync(() async {
     await AppCrypto.encryptAESInIsolate(path.readAsBytesSync(), _testKey);
   });
 }
 
 void _benchmarkDecryption(File path) {
-  final benchmark = BenchmarkTimer("file decryption");
+  final benchmark = BenchmarkTimer('file decryption');
   benchmark.run(() {
     AppCrypto.decryptAES(path.readAsBytesSync(), _testKey);
   });
 }
 
 void _benchmarkSharedKey() {
-  final benchmark = BenchmarkTimer("share key derive");
+  final benchmark = BenchmarkTimer('share key derive');
 
   benchmark.run(() {
     final userA = AppCrypto.generateECKeyPair();
@@ -55,7 +55,7 @@ void _benchmarkSharedKey() {
 }
 
 void _benchmarkHmacGeneration() {
-  final benchmark = BenchmarkTimer("hmac generation");
+  final benchmark = BenchmarkTimer('hmac generation');
 
   benchmark.run(() {
     AppCrypto.generateHMAC(_testKey, _file.readAsBytesSync());
@@ -63,8 +63,8 @@ void _benchmarkHmacGeneration() {
 }
 
 void _benchmarkEncryption() {
-  final benchmark = BenchmarkTimer("file encryption");
-  final File file = File("$_outPath/benchmark_encryption_default.exe");
+  final benchmark = BenchmarkTimer('file encryption');
+  final File file = File('$_outPath/benchmark_encryption_default.exe');
   benchmark.run(() {
     final bytes = AppCrypto.encryptAES(_file.readAsBytesSync(), _testKey);
     file.writeAsBytesSync(bytes);

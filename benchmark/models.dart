@@ -6,7 +6,7 @@ class BenchmarkTimer {
     await action();
     final end = DateTime.now().millisecondsSinceEpoch;
     final result = end - start;
-    print("Benchmark for ($_name): $result ms");
+    print('Benchmark for ($_name): $result ms');
   }
 
   int run(Function() action) {
@@ -14,7 +14,7 @@ class BenchmarkTimer {
     action.call();
     final end = DateTime.now().millisecondsSinceEpoch;
     final result = end - start;
-    print("Benchmark for ($_name): $result ms");
+    print('Benchmark for ($_name): $result ms');
     return result;
   }
 

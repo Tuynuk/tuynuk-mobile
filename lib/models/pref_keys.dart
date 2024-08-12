@@ -1,5 +1,5 @@
 class PrefKeys {
   PrefKeys._();
 
-  static String localeCode = "localCode";
+  static String localeCode = 'localCode';
 }
