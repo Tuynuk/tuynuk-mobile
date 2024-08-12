@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/downloader.dart';
 import 'package:safe_file_sender/models/base/base_event_listener.dart';
@@ -14,15 +13,6 @@ class ConnectionClient {
   final BaseEventListeners _eventNotifier;
   late HubConnection? _connection;
   static String baseUrl = 'http://192.168.1.18:8088/api/';
-  final Dio _dio = Dio(
-    BaseOptions(
-        baseUrl: baseUrl,
-        connectTimeout: const Duration(minutes: 5),
-        sendTimeout: const Duration(minutes: 5),
-        receiveTimeout: const Duration(minutes: 5)),
-  );
-
-  Dio get dio => _dio;
 
   void buildSignalR() {
     _connection = HubConnectionBuilder()
@@ -114,7 +104,6 @@ class ConnectionClient {
 
   Future<void> disconnect() async {
     await _connection?.stop();
-    _dio.close(force: true);
   }
 
   ConnectionClient(this._eventNotifier) {
@@ -122,11 +111,6 @@ class ConnectionClient {
   }
 
   _log(dynamic message) => logMessage(message);
-
-  Future<Map<String, dynamic>> fetchHeaders(String url) async {
-    final response = await dio.head(url);
-    return response.headers.map;
-  }
 
   Future<void> downloadFile(String fileId, String fileName, String savePath,
       {required Function(Uint8List bytes, String fileName) onSuccess,

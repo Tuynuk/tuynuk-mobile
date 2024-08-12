@@ -30,7 +30,8 @@ class ScaleTap extends StatefulWidget {
   final double? opacityMinValue;
   final bool enableFeedback;
 
-  const ScaleTap({super.key, 
+  const ScaleTap({
+    super.key,
     this.enableFeedback = true,
     this.onPressed,
     this.onLongPress,

@@ -2,7 +2,7 @@ import 'app_localizations.dart';
 
 /// The translations for English (`en`).
 class AppLocalizationsEn extends AppLocalizations {
-  AppLocalizationsEn([String locale = 'en']) : super(locale);
+  AppLocalizationsEn([super.locale = 'en']);
 
   @override
   String get send => 'Send file';
@@ -11,7 +11,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receive => 'Receive file';
 
   @override
-  String get keyDerivationInfo => 'This text were derived from the encryption key';
+  String get keyDerivationInfo =>
+      'This text were derived from the encryption key';
 
   @override
   String get sourceCode => 'Source code';

@@ -1,7 +1,7 @@
 import 'package:background_downloader/background_downloader.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:safe_file_sender/dev/logger.dart';
-import 'package:safe_file_sender/io/socket_client.dart';
+import 'package:safe_file_sender/io/connection_client.dart';
 
 class Downloader {
   const Downloader._();

@@ -62,7 +62,8 @@ class TransferStateController {
   void logStatus(TransferStateEnum state) {
     _currentState = state;
     _history.add(state);
-    if (state == TransferStateEnum.failed || state == TransferStateEnum.initial) {
+    if (state == TransferStateEnum.failed ||
+        state == TransferStateEnum.initial) {
       restart();
     }
     _notify();
