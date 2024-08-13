@@ -8,6 +8,8 @@ import 'package:convert/convert.dart';
 import 'package:pointycastle/export.dart';
 
 class AppCrypto {
+  AppCrypto._();
+
   static Uint8List _generateRandomBytes(int length) {
     final random = Random.secure();
     var values = List<int>.generate(length, (index) => random.nextInt(256));
@@ -251,6 +253,34 @@ class AppCrypto {
     hmacSha256.init(KeyParameter(key));
 
     return hmacSha256.process(message);
+  }
+
+  static Uint8List hashWithSalt(Uint8List data, Uint8List salt) {
+    final digest = Digest('SHA-256');
+
+    final saltedData = Uint8List.fromList(data + salt);
+    return digest.process(saltedData);
+  }
+
+  static Uint8List generateSalt({int length = 16}) {
+    final secureRandom = _secureRandom();
+    final salt = secureRandom.nextBytes(length);
+    return salt;
+  }
+
+  static bool verifyHash(
+      Uint8List input, Uint8List storedHash, Uint8List salt) {
+    final hashedInput = hashWithSalt(input, salt);
+
+    return _areUint8ListsEqual(hashedInput, storedHash);
+  }
+
+  static bool _areUint8ListsEqual(Uint8List list1, Uint8List list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 }
 
