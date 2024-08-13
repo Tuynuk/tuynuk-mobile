@@ -2,7 +2,7 @@ import 'app_localizations.dart';
 
 /// The translations for Uzbek (`uz`).
 class AppLocalizationsUz extends AppLocalizations {
-  AppLocalizationsUz([super.locale = 'uz']);
+  AppLocalizationsUz([String locale = 'uz']) : super(locale);
 
   @override
   String get send => 'Faylni yuborish';

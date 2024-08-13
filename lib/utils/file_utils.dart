@@ -10,6 +10,9 @@ class FileUtils {
   static File? fromSharedFile(SharedMediaFile? file) {
     if (file == null) return null;
     return File(file.path);
+  }  static File? fromFileSystemEntity(FileSystemEntity? file) {
+    if (file == null) return null;
+    return File(file.path);
   }
 }
 

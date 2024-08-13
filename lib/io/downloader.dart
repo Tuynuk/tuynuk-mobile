@@ -62,6 +62,7 @@ class Downloader {
         updates: Updates.statusAndProgress,
         filename: fileName,
         allowPause: true,
+        directory: 'downloads',
       );
       var prev = 0;
       _downloader.enqueue(

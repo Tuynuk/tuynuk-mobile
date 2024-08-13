@@ -9,6 +9,7 @@ import 'package:safe_file_sender/io/connection_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
 import 'package:safe_file_sender/ui/theme.dart';
+import 'package:safe_file_sender/ui/widgets/close_screen_button.dart';
 import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
@@ -47,28 +48,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      bottomNavigationBar: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            alignment: Alignment.center,
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12), color: Colors.white12),
-            margin: const EdgeInsets.all(24),
-            child: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(
-                Icons.close,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
+      bottomNavigationBar: const CloseScreenButton(),
       backgroundColor: Colors.black,
       body: Container(
         margin: const EdgeInsets.all(24),

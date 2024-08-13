@@ -13,7 +13,9 @@ import 'package:safe_file_sender/models/pref_keys.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/l10n/gen/app_localizations.dart';
 import 'package:safe_file_sender/models/environment.dart';
+import 'package:safe_file_sender/ui/history/transmission_history_screen.dart';
 import 'package:safe_file_sender/ui/main/bloc/main_bloc.dart';
+import 'package:safe_file_sender/ui/navigation/custom_page_transition.dart';
 import 'package:safe_file_sender/ui/receive_screen.dart';
 import 'package:safe_file_sender/ui/send_screen.dart';
 import 'package:safe_file_sender/ui/theme.dart';
@@ -48,6 +50,8 @@ class SafeApp extends StatelessWidget {
                   sharedFile: ModalRoute.of(context)?.settings.arguments
                       as SharedMediaFile?),
               PathValues.receive: (context) => const ReceiveScreen(),
+              PathValues.history: (context) =>
+                  const TransmissionHistoryScreen(),
             },
             locale: Locale(EncryptedSharedPreferences.getInstance().getString(
                 PrefKeys.localeCode,
@@ -56,8 +60,15 @@ class SafeApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             onGenerateTitle: (context) => context.localization.appName,
             theme: ThemeData(
+              primaryColor: Colors.white,
+              textTheme: AppTheme.textTheme,
+              scaffoldBackgroundColor: Colors.black,
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
               useMaterial3: false,
+              pageTransitionsTheme: PageTransitionsTheme(builders: {
+                TargetPlatform.android: CustomPageTransitionBuilder(),
+                TargetPlatform.iOS: CustomPageTransitionBuilder(),
+              }),
             ),
             home: const TuynukHomePage(),
           );
@@ -181,6 +192,21 @@ class _TuynukHomePageState extends State<TuynukHomePage> {
                   ),
                 );
               }).toList(),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topLeft,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              child: IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, PathValues.history);
+                },
+                icon: const Icon(
+                  Icons.history_toggle_off_rounded,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
           Align(
