@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:safe_file_sender/crypto/crypto.dart';
+import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/connection_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';

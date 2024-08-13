@@ -16,7 +16,7 @@ import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../crypto/crypto.dart';
+import '../crypto/crypto_core.dart';
 import '../dev/logger.dart';
 import 'widgets/status_logger.dart';
 

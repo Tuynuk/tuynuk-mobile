@@ -6,9 +6,13 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:pointycastle/export.dart';
+import 'package:safe_file_sender/crypto/crypto_local_storage.dart';
 
 class AppCrypto {
   AppCrypto._();
+
+  static FileEncryptionService fileEncryptionService(String pin) =>
+      FileEncryptionService(pin);
 
   static Uint8List _generateRandomBytes(int length) {
     final random = Random.secure();

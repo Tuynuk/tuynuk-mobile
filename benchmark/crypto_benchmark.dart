@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:safe_file_sender/crypto/crypto.dart';
+import 'package:safe_file_sender/crypto/crypto_core.dart';
 
 import 'models.dart';
 
