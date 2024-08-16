@@ -7,12 +7,40 @@ import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:pointycastle/export.dart';
 import 'package:safe_file_sender/crypto/crypto_local_storage.dart';
+import 'package:safe_file_sender/dev/logger.dart';
 
 class AppCrypto {
   AppCrypto._();
 
   static FileEncryptionService fileEncryptionService(String pin) =>
       FileEncryptionService(pin);
+
+  static Uint8List generateSaltPRNG() {
+    final secureRandom = SecureRandom('AES/CTR/PRNG');
+    secureRandom.seed(KeyParameter(Uint8List.fromList(List.generate(32, (i) => i))));
+    return secureRandom.nextBytes(16);
+  }
+
+  static Uint8List deriveKey(String input) {
+    final mac = HMac(SHA256Digest(), 64);
+    final pbkdf2 = PBKDF2KeyDerivator(mac)
+      ..init(Pbkdf2Parameters(generateSaltPRNG(), 100000, 32));
+    return pbkdf2.process(utf8.encode(input));
+  }
+
+  static Future<Uint8List> deriveKeyIsolate(String input) async {
+    logMessage('Deriving key for $input');
+    final receivePort = ReceivePort();
+    final isolate = await Isolate.spawn(
+      _deriveKeyByValueEntry,
+      _IsolateSingleStringData(input, receivePort.sendPort),
+    );
+
+    final result = await receivePort.first as Uint8List;
+    isolate.kill(priority: Isolate.immediate);
+    logMessage('Key derived!');
+    return result;
+  }
 
   static Uint8List _generateRandomBytes(int length) {
     final random = Random.secure();
@@ -131,7 +159,7 @@ class AppCrypto {
       Uint8List bytes, Uint8List sharedKey) async {
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawn(
-      _isolateEntry,
+      _decryptIsolateEntry,
       _IsolateData(bytes, sharedKey, receivePort.sendPort),
     );
 
@@ -293,12 +321,17 @@ void _encryptIsolateEntry(_IsolateData data) {
   data.sendPort.send(encryptedBytes);
 }
 
+void _deriveKeyByValueEntry(_IsolateSingleStringData data) {
+  final encryptedBytes = AppCrypto.deriveKey(data.data);
+  data.sendPort.send(encryptedBytes);
+}
+
 void _generateHMACIsolateEntry(_IsolateData data) {
   final encryptedBytes = AppCrypto.generateHMAC(data.bytes, data.sharedKey);
   data.sendPort.send(encryptedBytes);
 }
 
-void _isolateEntry(_IsolateData data) {
+void _decryptIsolateEntry(_IsolateData data) {
   final decryptedBytes = AppCrypto.decryptAES(data.bytes, data.sharedKey);
   data.sendPort.send(decryptedBytes);
 }
@@ -309,4 +342,10 @@ class _IsolateData {
   final SendPort sendPort;
 
   _IsolateData(this.bytes, this.sharedKey, this.sendPort);
+}
+class _IsolateSingleStringData {
+  final String data;
+  final SendPort sendPort;
+
+  _IsolateSingleStringData(this.data,this.sendPort);
 }

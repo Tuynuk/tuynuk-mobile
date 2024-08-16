@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -46,60 +47,73 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: const CloseScreenButton(),
-      body: ListView.builder(
-        itemCount: _files.length,
-        itemBuilder: (context, index) {
-          final file = _files[index];
-          final fileName = FileUtils.fileName(file.path);
-          return InkWell(
-            onTap: () async {
-              final decrypted = File(
-                  '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
-              await decrypted.create(recursive: true);
+      body: Container(
+        padding: const EdgeInsets.all(16),
+        child: ListView.builder(
+          itemCount: _files.length,
+          itemBuilder: (context, index) {
+            final file = _files[index];
+            final fileName = FileUtils.fileName(file.path);
+            return InkWell(
+              onTap: () async {
+                final pin =
+                    context.preferences.getString(PreferencesCacheKeys.pin)!;
+                final decryptedFile = File(
+                    '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
+                await decryptedFile.create(recursive: true);
 
-              if (context.mounted) {
-                AppCrypto.fileEncryptionService(context.preferences
-                        .getString(PreferencesCacheKeys.pin)!)
-                    .decryptFile(file.path, decrypted.path)
-                    .then((value) {
-                  Share.shareXFiles([XFile(decrypted.path)])
+                if (context.mounted) {
+                  final encryptedSecretKey = context.preferences
+                      .getString(FileUtils.fileName(file.path));
+                  logMessage(encryptedSecretKey);
+                  final decryptedSecretKey = await AppCrypto.decryptAESInIsolate(
+                      base64Decode(encryptedSecretKey!),
+                      context.appTempData.getPinDerivedKey()!);
+
+                  final decryptedBytes = await AppCrypto.decryptAESInIsolate(
+                      FileUtils.fromFileSystemEntity(file)!.readAsBytesSync(),
+                      decryptedSecretKey);
+                  decryptedFile.writeAsBytesSync(decryptedBytes);
+
+                  Share.shareXFiles([XFile(decryptedFile.path)])
                       .then((value) async {
                     logMessage('Sharing end');
                     FileUtils.clearDecryptedCache();
                   });
-                });
-              }
-            },
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    final isDeleted =
-                        FileUtils.fromFileSystemEntity(file)?.safeDelete();
-                    setState(() {});
-                  },
-                  icon: const Icon(
-                    Icons.delete,
-                    color: Colors.redAccent,
-                  ),
-                ),
-                Flexible(
-                  child: Container(
-                    margin: const EdgeInsets.all(12),
-                    child: Text(
-                      fileName,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleSmall
-                          ?.copyWith(fontSize: 10),
+                }
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      final isDeleted =
+                          FileUtils.fromFileSystemEntity(file)?.safeDelete();
+                      _files.remove(file);
+                      setState(() {});
+                    },
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                  Flexible(
+                    child: Container(
+                      margin: const EdgeInsets.all(12),
+                      child: Text(
+                        fileName,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(fontSize: 10, color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

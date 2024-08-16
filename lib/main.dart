@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:safe_file_sender/common/app_temp_data.dart';
 import 'package:safe_file_sender/common/constants.dart';
 import 'package:safe_file_sender/models/path_values.dart';
 import 'package:safe_file_sender/models/pref_keys.dart';
@@ -23,6 +24,7 @@ import 'package:safe_file_sender/ui/theme.dart';
 import 'package:safe_file_sender/ui/widgets/common_inherited_widget.dart';
 import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
+import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
@@ -37,6 +39,7 @@ class SafeApp extends StatelessWidget {
   SafeApp({super.key});
 
   final MainBloc _bloc = MainBloc();
+  final _appTempData = AppTempData();
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +49,7 @@ class SafeApp extends StatelessWidget {
         builder: (context, state) {
           return CommonInheritedWidget(
             EncryptedSharedPreferences.getInstance(),
+            _appTempData,
             child: MaterialApp(
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
@@ -142,6 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    FileUtils.clearDecryptedCache();
     _sharingIntentSubscription.cancel();
     super.dispose();
   }

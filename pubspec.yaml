@@ -40,6 +40,7 @@ dependencies:
   receive_sharing_intent: ^1.8.0
   share_plus: ^9.0.0
   background_downloader: ^8.5.3
+  mime: ^1.0.5
   quick_actions: ^1.0.7
   flutter_bloc: ^8.1.6
   encrypt_shared_preferences: ^0.7.5

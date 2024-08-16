@@ -55,12 +55,13 @@ class Downloader {
   static Future<void> download(String fileId, String fileName,
       {Function(int percentage)? onReceive,
       Function()? onError,
-      Function(String path)? onSuccess}) async {
+      Function(String path, String transformedFileName)? onSuccess}) async {
     try {
+      final name = '$fileId@_$fileName';
       final task = DownloadTask(
         url: '${ConnectionClient.baseUrl}Files/GetFile?fileId=$fileId',
         updates: Updates.statusAndProgress,
-        filename: fileName,
+        filename: name,
         allowPause: true,
         directory: 'downloads',
       );
@@ -77,8 +78,8 @@ class Downloader {
           prev = percent;
           if (percent == 100) {
             final path =
-                '${(await getApplicationDocumentsDirectory()).path}/downloads/$fileName';
-            onSuccess?.call(path);
+                '${(await getApplicationDocumentsDirectory()).path}/downloads/$name';
+            onSuccess?.call(path,name);
           }
         }
       });

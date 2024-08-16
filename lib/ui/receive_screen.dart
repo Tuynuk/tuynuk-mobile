@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:convert/convert.dart';
@@ -188,10 +189,11 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     _receiverStateController.logStatus(TransferStateEnum.downloadingFile);
 
     _connectionClient.downloadFile(fileId, fileName, path.path,
-        onSuccess: (bytes, fileName) async {
+        onSuccess: (file, fileName) async {
       _receiverStateController.logStatus(TransferStateEnum.checkingHmac);
-      final hmacLocal =
-          hex.encode(await AppCrypto.generateHMACIsolate(_sharedKey!, bytes));
+      final fileBytes = file.readAsBytesSync();
+      final hmacLocal = hex
+          .encode(await AppCrypto.generateHMACIsolate(_sharedKey!, fileBytes));
       if (hmacLocal == hmac) {
         _receiverStateController.logStatus(TransferStateEnum.hmacSuccess);
         logMessage('HMAC check success');
@@ -201,35 +203,17 @@ class _ReceiveScreenState extends State<ReceiveScreen>
         _clear();
         return;
       }
-      _receiverStateController.logStatus(TransferStateEnum.decryptionFile);
-      final decBytes = await AppCrypto.decryptAESInIsolate(bytes, _sharedKey!);
+      _receiverStateController.logStatus(TransferStateEnum.savingEncryptedFile);
 
-      final decryptedFile = File(
-          '${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName');
-      _receiverStateController.logStatus(TransferStateEnum.writingFile);
-      decryptedFile.writeAsBytesSync(decBytes);
-
-      _clear();
       if (mounted) {
-        final localPath =
-            '${(await getApplicationDocumentsDirectory()).path}/downloads/${fileId}_$fileName';
-        if (!mounted) {
-          decryptedFile.safeDelete();
-          return;
-        }
-        AppCrypto.fileEncryptionService(
-          context.preferences.getString(PreferencesCacheKeys.pin)!,
-        ).encryptFile(decryptedFile.path, localPath);
-      } else {
-        decryptedFile.safeDelete();
+        final derivedKey = context.appTempData.getPinDerivedKey();
+        final encryptedSecretKey =
+            await AppCrypto.encryptAESInIsolate(_sharedKey!, derivedKey!);
+        await context.preferences
+            .setString(fileName, base64Encode(encryptedSecretKey));
       }
+      _clear();
       await _connectionClient.disconnect();
-
-      // Share.shareXFiles([
-      //   XFile(decryptedFile.path),
-      // ]).then((value) {
-      //   decryptedFile.safeDelete();
-      // });
     }, onError: () {
       _receiverStateController.logStatus(TransferStateEnum.fileDeleteError);
       _clear();

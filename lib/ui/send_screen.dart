@@ -288,6 +288,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   }
 
   _clear() {
+    _selectedFile?.safeDelete(recursive: true);
     _senderStateController.logStatus(TransferStateEnum.initial);
     _sharedKeyDigest = null;
     _textEditingController.clear();
@@ -301,6 +302,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
 
   @override
   void dispose() {
+    _clear();
     _connectionClient.disconnect();
     super.dispose();
   }

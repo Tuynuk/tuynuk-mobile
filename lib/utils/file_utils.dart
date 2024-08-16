@@ -8,10 +8,15 @@ class FileUtils {
   static String fileName(String path) =>
       path.split(Platform.pathSeparator).last;
 
+  static String extractFileId(String path) {
+    return fileName(path).split('@').first;
+  }
+
   static Future<bool> clearDecryptedCache() async {
-    return File(
-            '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/')
-        .safeDelete(recursive: true);
+    return File('${(await getApplicationDocumentsDirectory()).path}/downloads/temp/')
+            .safeDelete(recursive: true) &&
+        File('${(await getApplicationCacheDirectory()).path}/share_plus/')
+            .safeDelete(recursive: true);
   }
 
   static File? fromSharedFile(SharedMediaFile? file) {

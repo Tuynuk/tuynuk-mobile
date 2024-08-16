@@ -44,26 +44,14 @@ class FileEncryptionService {
 
   FileEncryptionService(this.pin);
 
-  Uint8List _generateSalt() {
-    final secureRandom = pc.SecureRandom('AES/CTR/PRNG');
-    secureRandom.seed(pc.KeyParameter(Uint8List.fromList(List.generate(32, (i) => i))));
-    return secureRandom.nextBytes(16);
-  }
-
-  Uint8List _deriveKey(Uint8List salt) {
-    final mac = pc.HMac(pc.SHA256Digest(), 64); // MAC for PBKDF2
-    final pbkdf2 = pc.PBKDF2KeyDerivator(mac)
-      ..init(pc.Pbkdf2Parameters(salt, 100000, 32));
-    return pbkdf2.process(utf8.encode(pin));
-  }
 
   void encryptFileSync(String filePath, String outputPath) {
     logMessage('Encryption file service');
     final file = File(filePath);
     final fileData = file.readAsBytesSync();
 
-    final salt = _generateSalt();
-    final key = _deriveKey(salt);
+    final salt = AppCrypto.generateSaltPRNG();
+    final key = AppCrypto.deriveKey(pin);
     final encrypter = pc.PaddedBlockCipherImpl(pc.PKCS7Padding(), pc.AESEngine())
       ..init(
           true,
@@ -71,7 +59,7 @@ class FileEncryptionService {
             pc.KeyParameter(key),
             null,
           ));
-    final iv = _generateSalt();
+    final iv = AppCrypto.generateSalt();
     final encrypted = encrypter.process(fileData);
 
     final outputFile = File(outputPath);
@@ -90,7 +78,7 @@ class FileEncryptionService {
     final iv = encryptedData.sublist(16, 32);
     final encryptedBytes = encryptedData.sublist(32);
 
-    final key = _deriveKey(salt);
+    final key = AppCrypto.deriveKey(pin);
     final encrypter = pc.PaddedBlockCipherImpl(pc.PKCS7Padding(), pc.AESEngine())
       ..init(
           false,

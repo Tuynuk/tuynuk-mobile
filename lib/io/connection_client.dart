@@ -113,17 +113,15 @@ class ConnectionClient {
   _log(dynamic message) => logMessage(message);
 
   Future<void> downloadFile(String fileId, String fileName, String savePath,
-      {required Function(Uint8List bytes, String fileName) onSuccess,
+      {required Function(File path, String fileName) onSuccess,
       required Function() onError}) async {
     try {
       Downloader.download(fileId, fileName,
-          onSuccess: (String downloadedPath) async {
+          onSuccess: (String downloadedPath, String transformedFileName) async {
         final file = File(downloadedPath);
-        final fileBytes = file.readAsBytesSync();
-        file.safeDelete();
         onSuccess.call(
-          fileBytes,
-          fileName,
+          file,
+          transformedFileName,
         );
       });
     } catch (e) {
