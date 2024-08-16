@@ -16,9 +16,11 @@ import 'package:safe_file_sender/models/environment.dart';
 import 'package:safe_file_sender/ui/history/transmission_history_screen.dart';
 import 'package:safe_file_sender/ui/main/bloc/main_bloc.dart';
 import 'package:safe_file_sender/ui/navigation/custom_page_transition.dart';
+import 'package:safe_file_sender/ui/pin/pin_screen.dart';
 import 'package:safe_file_sender/ui/receive_screen.dart';
 import 'package:safe_file_sender/ui/send_screen.dart';
 import 'package:safe_file_sender/ui/theme.dart';
+import 'package:safe_file_sender/ui/widgets/common_inherited_widget.dart';
 import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -42,35 +44,41 @@ class SafeApp extends StatelessWidget {
       create: (_) => _bloc,
       child: BlocConsumer<MainBloc, MainState>(
         builder: (context, state) {
-          return MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routes: {
-              PathValues.send: (context) => SendScreen(
-                  sharedFile: ModalRoute.of(context)?.settings.arguments
-                      as SharedMediaFile?),
-              PathValues.receive: (context) => const ReceiveScreen(),
-              PathValues.history: (context) =>
-                  const TransmissionHistoryScreen(),
-            },
-            locale: Locale(EncryptedSharedPreferences.getInstance().getString(
-                PrefKeys.localeCode,
-                defaultValue:
-                    AppLocalizations.supportedLocales.first.languageCode)!),
-            debugShowCheckedModeBanner: false,
-            onGenerateTitle: (context) => context.localization.appName,
-            theme: ThemeData(
-              primaryColor: Colors.white,
-              textTheme: AppTheme.textTheme,
-              scaffoldBackgroundColor: Colors.black,
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-              useMaterial3: false,
-              pageTransitionsTheme: PageTransitionsTheme(builders: {
-                TargetPlatform.android: CustomPageTransitionBuilder(),
-                TargetPlatform.iOS: CustomPageTransitionBuilder(),
-              }),
+          return CommonInheritedWidget(
+            EncryptedSharedPreferences.getInstance(),
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              routes: {
+                PathValues.send: (context) => SendScreen(
+                    sharedFile: ModalRoute.of(context)?.settings.arguments
+                        as SharedMediaFile?),
+                PathValues.receive: (context) => const ReceiveScreen(),
+                PathValues.pin: (context) => PinScreen(),
+                PathValues.history: (context) =>
+                    const TransmissionHistoryScreen(),
+                PathValues.home: (context) => const HomeScreen(),
+              },
+              locale: Locale(EncryptedSharedPreferences.getInstance().getString(
+                  PrefKeys.localeCode,
+                  defaultValue:
+                      AppLocalizations.supportedLocales.first.languageCode)!),
+              debugShowCheckedModeBanner: false,
+              onGenerateTitle: (context) => context.localization.appName,
+              theme: ThemeData(
+                primaryColor: Colors.white,
+                textTheme: AppTheme.textTheme,
+                hintColor: Colors.white12,
+                scaffoldBackgroundColor: Colors.black,
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+                useMaterial3: false,
+                pageTransitionsTheme: PageTransitionsTheme(builders: {
+                  TargetPlatform.android: CustomPageTransitionBuilder(),
+                  TargetPlatform.iOS: CustomPageTransitionBuilder(),
+                }),
+              ),
+              home: PinScreen(),
             ),
-            home: const TuynukHomePage(),
           );
         },
         listener: (context, state) {
@@ -81,14 +89,14 @@ class SafeApp extends StatelessWidget {
   }
 }
 
-class TuynukHomePage extends StatefulWidget {
-  const TuynukHomePage({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<TuynukHomePage> createState() => _TuynukHomePageState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _TuynukHomePageState extends State<TuynukHomePage> {
+class _HomeScreenState extends State<HomeScreen> {
   late StreamSubscription _sharingIntentSubscription;
 
   @override

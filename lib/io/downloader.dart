@@ -77,7 +77,7 @@ class Downloader {
           prev = percent;
           if (percent == 100) {
             final path =
-                '${(await getApplicationDocumentsDirectory()).path}/$fileName';
+                '${(await getApplicationDocumentsDirectory()).path}/downloads/$fileName';
             onSuccess?.call(path);
           }
         }

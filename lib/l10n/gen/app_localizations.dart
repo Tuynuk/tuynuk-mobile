@@ -154,6 +154,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @setupPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup PIN'**
+  String get setupPin;
+
+  /// No description provided for @inputPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Input PIN'**
+  String get inputPin;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -33,4 +33,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get language => 'Язык';
+
+  @override
+  String get done => 'Готово';
+
+  @override
+  String get save => 'Сохранить';
+
+  @override
+  String get setupPin => 'Установить ПИН';
+
+  @override
+  String get inputPin => 'Введите ПИН';
 }

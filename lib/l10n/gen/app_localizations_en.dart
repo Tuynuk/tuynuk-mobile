@@ -33,4 +33,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'Language';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get setupPin => 'Setup PIN';
+
+  @override
+  String get inputPin => 'Input PIN';
 }

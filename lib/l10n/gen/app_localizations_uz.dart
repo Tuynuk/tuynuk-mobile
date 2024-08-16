@@ -33,4 +33,16 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get language => 'Til';
+
+  @override
+  String get done => 'Tayyor';
+
+  @override
+  String get save => 'Saqlash';
+
+  @override
+  String get setupPin => 'PIN o\'rnatish';
+
+  @override
+  String get inputPin => 'PIN kiriting';
 }
