@@ -110,7 +110,7 @@ class _PinScreenState extends State<PinScreen> {
       _loading = false;
     });
     if (context.mounted) {
-      logMessage('Key derived : $key');
+      logMessage('Key derived[${key.length}] : $key');
       HiveManager.openDownloadsBox(key);
       context.appTempData.setPinDerivedKey(key);
       context.appTempData.setPinDerivedKeySalt(salt);

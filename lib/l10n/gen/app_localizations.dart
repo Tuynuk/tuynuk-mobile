@@ -178,6 +178,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Input PIN'**
   String get inputPin;
+
+  /// No description provided for @continueAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAuth;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

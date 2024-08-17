@@ -45,4 +45,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get inputPin => 'PIN kiriting';
+
+  @override
+  String get continueAuth => 'Davom etish';
 }

@@ -205,6 +205,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
 
       if (mounted) {
         final derivedKey = context.appTempData.getPinDerivedKey();
+        logMessage(derivedKey?.length);
         final encryptedSecretKey =
             await AppCrypto.encryptAESInIsolate(_sharedKey!, derivedKey!);
 

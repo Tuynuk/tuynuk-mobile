@@ -9,7 +9,7 @@ class AppTempData {
   }
 
   void setPinDerivedKeySalt(Uint8List value) {
-    _pinDerivedKey = value;
+    _pinDerivedKeySalt = value;
   }
 
   Uint8List? getPinDerivedKey() => _pinDerivedKey;

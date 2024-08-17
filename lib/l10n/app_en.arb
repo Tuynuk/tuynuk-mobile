@@ -12,5 +12,6 @@
   "done": "Done",
   "save": "Save",
   "setupPin": "Setup PIN",
-  "inputPin": "Input PIN"
+  "inputPin": "Input PIN",
+  "continueAuth": "Continue"
 }

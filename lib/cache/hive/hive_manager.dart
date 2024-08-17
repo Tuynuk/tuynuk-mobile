@@ -29,15 +29,21 @@ class HiveManager {
 
   static Future<void> saveFile(String fileId, String filePath, String hmac,
       String secretKey, Uint8List salt) async {
-    Hive.box<DownloadFile>(downloads).put(fileId,
-        DownloadFile(filePath, fileId, hmac, secretKey, base64Encode(salt)));
+    Hive.box<DownloadFile>(downloads).put(
+        fileId,
+        DownloadFile(filePath, fileId, hmac, secretKey, base64Encode(salt),
+            DateTime.now().toIso8601String()));
   }
 
   static Future<List<DownloadFile>> getFiles() async {
-    return Hive.box<DownloadFile>(downloads).values.toList();
+    final values = Hive.box<DownloadFile>(downloads).values.toList();
+    values.sort((b,a) => a.createDate.compareTo(b.createDate));
+    return values;
   }
 
   static Future<void> removeDownloadFile(String fileId) async {
-    await Hive.box(downloads).delete(fileId);
+    if (Hive.isBoxOpen(downloads)) {
+      await Hive.box<DownloadFile>(downloads).delete(fileId);
+    }
   }
 }

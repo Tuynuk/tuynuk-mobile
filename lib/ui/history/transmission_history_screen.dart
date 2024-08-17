@@ -63,7 +63,11 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
                       final isDeleted = File(downloadedFile.path).safeDelete();
                       HiveManager.removeDownloadFile(downloadedFile.fileId);
                       _files.remove(downloadedFile);
-                      setState(() {});
+                      if (_files.isEmpty) {
+                        Navigator.pop(context);
+                      } else {
+                        setState(() {});
+                      }
                     },
                     icon: const Icon(
                       Icons.delete,
@@ -107,9 +111,7 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
       final encryptedSecretKey = downloadedFile.secretKey;
       final decryptedSecretKey = await AppCrypto.decryptAESInIsolate(
           base64Decode(encryptedSecretKey),
-          AppCrypto.sha256Digest(context.appTempData.getPinDerivedKey()!,
-              salt: base64Decode(downloadedFile.salt)));
-
+          context.appTempData.getPinDerivedKey()!);
       final decryptedBytes = await AppCrypto.decryptAESInIsolate(
           File(downloadedFile.path).readAsBytesSync(), decryptedSecretKey);
       decryptedFile.writeAsBytesSync(decryptedBytes);

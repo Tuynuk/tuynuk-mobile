@@ -45,4 +45,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inputPin => 'Input PIN';
+
+  @override
+  String get continueAuth => 'Continue';
 }

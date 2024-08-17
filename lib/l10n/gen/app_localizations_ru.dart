@@ -45,4 +45,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get inputPin => 'Введите ПИН';
+
+  @override
+  String get continueAuth => 'Продолжить';
 }

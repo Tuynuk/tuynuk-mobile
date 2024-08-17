@@ -12,5 +12,6 @@
   "done": "Tayyor",
   "save": "Saqlash",
   "setupPin": "PIN o'rnatish",
-  "inputPin": "PIN kiriting"
+  "inputPin": "PIN kiriting",
+  "continueAuth": "Davom etish"
 }
