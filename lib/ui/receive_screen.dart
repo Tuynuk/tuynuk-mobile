@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:safe_file_sender/cache/hive/hive_manager.dart';
-import 'package:safe_file_sender/cache/preferences_cache_keys.dart';
 import 'package:safe_file_sender/io/connection_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
@@ -16,9 +15,7 @@ import 'package:safe_file_sender/ui/widgets/close_screen_button.dart';
 import 'package:safe_file_sender/ui/widgets/common_inherited_widget.dart';
 import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
-import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../crypto/crypto_core.dart';
 import '../dev/logger.dart';
@@ -212,7 +209,11 @@ class _ReceiveScreenState extends State<ReceiveScreen>
             await AppCrypto.encryptAESInIsolate(_sharedKey!, derivedKey!);
 
         HiveManager.saveFile(
-            fileId, file.path, hmac, base64Encode(encryptedSecretKey));
+            fileId,
+            file.path,
+            hmac,
+            base64Encode(encryptedSecretKey),
+            context.appTempData.getPinDerivedKeySalt()!);
       }
       _clear();
       await _connectionClient.disconnect();

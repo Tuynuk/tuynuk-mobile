@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/connection_client.dart';

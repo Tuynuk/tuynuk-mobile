@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:safe_file_sender/cache/hive/adapters/download_file_adapter.dart';
 import 'package:safe_file_sender/cache/hive/hive_manager.dart';
-import 'package:safe_file_sender/cache/preferences_cache_keys.dart';
 import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/ui/widgets/close_screen_button.dart';
@@ -54,28 +53,7 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
             final fileName = FileUtils.fileName(downloadedFile.path);
             return InkWell(
               onTap: () async {
-                final decryptedFile = File(
-                    '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
-                await decryptedFile.create(recursive: true);
-
-                if (context.mounted) {
-                  final encryptedSecretKey = downloadedFile.secretKey;
-                  logMessage(encryptedSecretKey);
-                  final decryptedSecretKey =
-                      await AppCrypto.decryptAESInIsolate(
-                          base64Decode(encryptedSecretKey),
-                          context.appTempData.getPinDerivedKey()!);
-
-                  final decryptedBytes = await AppCrypto.decryptAESInIsolate(
-                      File(downloadedFile.path).readAsBytesSync(),
-                      decryptedSecretKey);
-                  decryptedFile.writeAsBytesSync(decryptedBytes);
-
-                  Share.shareXFiles([XFile(decryptedFile.path)])
-                      .then((value) async {
-                    FileUtils.clearDecryptedCache();
-                  });
-                }
+                _handleTap(context, downloadedFile, fileName);
               },
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -117,5 +95,28 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
   void dispose() {
     FileUtils.clearDecryptedCache();
     super.dispose();
+  }
+
+  void _handleTap(BuildContext context, DownloadFile downloadedFile,
+      String fileName) async {
+    final decryptedFile = File(
+        '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
+    await decryptedFile.create(recursive: true);
+
+    if (context.mounted) {
+      final encryptedSecretKey = downloadedFile.secretKey;
+      final decryptedSecretKey = await AppCrypto.decryptAESInIsolate(
+          base64Decode(encryptedSecretKey),
+          AppCrypto.sha256Digest(context.appTempData.getPinDerivedKey()!,
+              salt: base64Decode(downloadedFile.salt)));
+
+      final decryptedBytes = await AppCrypto.decryptAESInIsolate(
+          File(downloadedFile.path).readAsBytesSync(), decryptedSecretKey);
+      decryptedFile.writeAsBytesSync(decryptedBytes);
+
+      Share.shareXFiles([XFile(decryptedFile.path)]).then((value) async {
+        FileUtils.clearDecryptedCache();
+      });
+    }
   }
 }

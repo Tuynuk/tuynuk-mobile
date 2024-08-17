@@ -1,11 +1,9 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/downloader.dart';
 import 'package:safe_file_sender/models/base/base_event_listener.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
-import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:signalr_netcore/json_hub_protocol.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 

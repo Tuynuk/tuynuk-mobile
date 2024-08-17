@@ -1,11 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
-import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:pointycastle/export.dart' as pc;
 import 'package:safe_file_sender/crypto/crypto_core.dart';
-import 'package:safe_file_sender/dev/logger.dart';
 
 void _isolateEntryPoint(SendPort sendPort) {
   final receivePort = ReceivePort();
@@ -46,7 +43,6 @@ class FileEncryptionService {
 
 
   void encryptFileSync(String filePath, String outputPath) {
-    logMessage('Encryption file service');
     final file = File(filePath);
     final fileData = file.readAsBytesSync();
 
@@ -66,11 +62,9 @@ class FileEncryptionService {
     outputFile.writeAsBytesSync(
       Uint8List.fromList(salt + iv + encrypted),
     );
-    logMessage('Encryption file service done');
   }
 
   Uint8List decryptFileSync(String encryptedFilePath, String outputPath) {
-    logMessage('Decryption file service');
     final encryptedFile = File(encryptedFilePath);
     final encryptedData = encryptedFile.readAsBytesSync();
 
@@ -90,7 +84,6 @@ class FileEncryptionService {
 
     final outputFile = File(outputPath);
     outputFile.writeAsBytesSync(decrypted);
-    logMessage('Decryption file service done');
 
     return decrypted;
   }

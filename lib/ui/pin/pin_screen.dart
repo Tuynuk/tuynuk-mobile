@@ -1,6 +1,7 @@
-import 'package:encrypt_shared_preferences/provider.dart';
+import 'dart:convert';
+
+import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
@@ -11,7 +12,7 @@ import 'package:safe_file_sender/ui/widgets/common_inherited_widget.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
 
 class PinScreen extends StatefulWidget {
-  PinScreen({super.key});
+  const PinScreen({super.key});
 
   @override
   State<PinScreen> createState() => _PinScreenState();
@@ -45,7 +46,9 @@ class _PinScreenState extends State<PinScreen> {
                   margin: const EdgeInsets.only(right: 32),
                   child: TextButton(
                     onPressed: () {
-                      _handleTap(context);
+                      if (_textEditingController.text.trim().length > 3) {
+                        _handleTap(context);
+                      }
                     },
                     child: _loading
                         ? const SizedBox(
@@ -70,7 +73,8 @@ class _PinScreenState extends State<PinScreen> {
 
   bool checkValidPin(BuildContext context) {
     return context.preferences.getString(PreferencesCacheKeys.pin) ==
-        _textEditingController.text.trim();
+        hex.encode(AppCrypto.sha256Digest(
+            utf8.encode(_textEditingController.text.trim())));
   }
 
   void _handleTap(BuildContext context) {
@@ -85,9 +89,12 @@ class _PinScreenState extends State<PinScreen> {
     } else {
       context.preferences
           .setString(
-              PreferencesCacheKeys.pin, _textEditingController.text.trim())
-          .then((value) {});
-      _goHome(context);
+              PreferencesCacheKeys.pin,
+              hex.encode(AppCrypto.sha256Digest(
+                  utf8.encode(_textEditingController.text.trim()))))
+          .then((value) {
+        _goHome(context);
+      });
     }
   }
 
@@ -95,8 +102,10 @@ class _PinScreenState extends State<PinScreen> {
     setState(() {
       _loading = true;
     });
-    final key =
-        await AppCrypto.deriveKeyIsolate(_textEditingController.text.trim());
+    final salt = AppCrypto.generateSalt();
+    final key = AppCrypto.sha256Digest(
+        utf8.encode(_textEditingController.text.trim()),
+        salt: salt);
     setState(() {
       _loading = false;
     });
@@ -104,6 +113,7 @@ class _PinScreenState extends State<PinScreen> {
       logMessage('Key derived : $key');
       HiveManager.openDownloadsBox(key);
       context.appTempData.setPinDerivedKey(key);
+      context.appTempData.setPinDerivedKeySalt(salt);
       Navigator.pushNamedAndRemoveUntil(
           context, PathValues.home, NavigatorRoutePredicates.deleteAll);
     }

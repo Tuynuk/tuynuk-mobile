@@ -5,7 +5,6 @@ import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/cache/hive/hive_manager.dart';
@@ -35,12 +34,12 @@ void main() async {
 
   await EncryptedSharedPreferences.initialize(Environment.key);
   runApp(
-    SafeApp(),
+    Tuynuk(),
   );
 }
 
-class SafeApp extends StatelessWidget {
-  SafeApp({super.key});
+class Tuynuk extends StatelessWidget {
+  Tuynuk({super.key});
 
   final MainBloc _bloc = MainBloc();
   final _appTempData = AppTempData();
@@ -62,7 +61,7 @@ class SafeApp extends StatelessWidget {
                     sharedFile: ModalRoute.of(context)?.settings.arguments
                         as SharedMediaFile?),
                 PathValues.receive: (context) => const ReceiveScreen(),
-                PathValues.pin: (context) => PinScreen(),
+                PathValues.pin: (context) => const PinScreen(),
                 PathValues.history: (context) =>
                     const TransmissionHistoryScreen(),
                 PathValues.home: (context) => const HomeScreen(),
@@ -85,7 +84,7 @@ class SafeApp extends StatelessWidget {
                   TargetPlatform.iOS: CustomPageTransitionBuilder(),
                 }),
               ),
-              home: PinScreen(),
+              home: const PinScreen(),
             ),
           );
         },

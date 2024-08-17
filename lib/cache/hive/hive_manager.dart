@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:hive_flutter/hive_flutter.dart';
@@ -26,10 +27,10 @@ class HiveManager {
     }
   }
 
-  static Future<void> saveFile(
-      String fileId, String filePath, String hmac, String secretKey) async {
-    Hive.box<DownloadFile>(downloads)
-        .put(fileId, DownloadFile(filePath, fileId, hmac, secretKey));
+  static Future<void> saveFile(String fileId, String filePath, String hmac,
+      String secretKey, Uint8List salt) async {
+    Hive.box<DownloadFile>(downloads).put(fileId,
+        DownloadFile(filePath, fileId, hmac, secretKey, base64Encode(salt)));
   }
 
   static Future<List<DownloadFile>> getFiles() async {

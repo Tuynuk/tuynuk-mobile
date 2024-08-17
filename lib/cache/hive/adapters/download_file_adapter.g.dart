@@ -21,13 +21,14 @@ class DownloadFileAdapter extends TypeAdapter<DownloadFile> {
       fields[0] as String,
       fields[1] as String,
       fields[3] as String,
+      fields[4] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, DownloadFile obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.fileId)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class DownloadFileAdapter extends TypeAdapter<DownloadFile> {
       ..writeByte(2)
       ..write(obj.path)
       ..writeByte(3)
-      ..write(obj.secretKey);
+      ..write(obj.secretKey)
+      ..writeByte(4)
+      ..write(obj.salt);
   }
 
   @override

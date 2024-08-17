@@ -12,6 +12,8 @@ class DownloadFile extends HiveObject {
   final String path;
   @HiveField(3)
   final String secretKey;
+  @HiveField(4)
+  final String salt;
 
-  DownloadFile(this.path, this.fileId, this.hmac,this.secretKey);
+  DownloadFile(this.path, this.fileId, this.hmac, this.secretKey, this.salt);
 }

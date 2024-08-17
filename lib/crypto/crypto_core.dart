@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:pointycastle/export.dart';
 import 'package:safe_file_sender/crypto/crypto_local_storage.dart';
-import 'package:safe_file_sender/dev/logger.dart';
 
 class AppCrypto {
   AppCrypto._();
@@ -17,7 +16,8 @@ class AppCrypto {
 
   static Uint8List generateSaltPRNG() {
     final secureRandom = SecureRandom('AES/CTR/PRNG');
-    secureRandom.seed(KeyParameter(Uint8List.fromList(List.generate(32, (i) => i))));
+    secureRandom
+        .seed(KeyParameter(Uint8List.fromList(List.generate(32, (i) => i))));
     return secureRandom.nextBytes(16);
   }
 
@@ -29,7 +29,6 @@ class AppCrypto {
   }
 
   static Future<Uint8List> deriveKeyIsolate(String input) async {
-    logMessage('Deriving key for $input');
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawn(
       _deriveKeyByValueEntry,
@@ -38,7 +37,6 @@ class AppCrypto {
 
     final result = await receivePort.first as Uint8List;
     isolate.kill(priority: Isolate.immediate);
-    logMessage('Key derived!');
     return result;
   }
 
@@ -275,9 +273,13 @@ class AppCrypto {
     return Uint8List.fromList(byteList);
   }
 
-  static Uint8List sha256Digest(Uint8List input) {
+  static Uint8List sha256Digest(Uint8List input, {Uint8List? salt}) {
     final Digest sha256 = SHA256Digest();
-    return sha256.process(Uint8List.fromList(input));
+    final saltedInput = List<int>.from(input);
+    if (salt != null) {
+      saltedInput.addAll(salt);
+    }
+    return sha256.process(Uint8List.fromList(saltedInput));
   }
 
   static Uint8List generateHMAC(Uint8List key, Uint8List message) {
@@ -343,9 +345,10 @@ class _IsolateData {
 
   _IsolateData(this.bytes, this.sharedKey, this.sendPort);
 }
+
 class _IsolateSingleStringData {
   final String data;
   final SendPort sendPort;
 
-  _IsolateSingleStringData(this.data,this.sendPort);
+  _IsolateSingleStringData(this.data, this.sendPort);
 }
