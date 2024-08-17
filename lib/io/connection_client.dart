@@ -117,11 +117,11 @@ class ConnectionClient {
       required Function() onError}) async {
     try {
       Downloader.download(fileId, fileName,
-          onSuccess: (String downloadedPath, String transformedFileName) async {
+          onSuccess: (String downloadedPath) async {
         final file = File(downloadedPath);
         onSuccess.call(
           file,
-          transformedFileName,
+          fileName,
         );
       });
     } catch (e) {

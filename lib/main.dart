@@ -5,8 +5,10 @@ import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/common/app_temp_data.dart';
 import 'package:safe_file_sender/common/constants.dart';
 import 'package:safe_file_sender/models/path_values.dart';
@@ -29,6 +31,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await HiveManager.init();
+
   await EncryptedSharedPreferences.initialize(Environment.key);
   runApp(
     SafeApp(),

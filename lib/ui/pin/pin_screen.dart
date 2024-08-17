@@ -1,6 +1,7 @@
 import 'package:encrypt_shared_preferences/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/utils/navigator_utils.dart';
@@ -101,6 +102,7 @@ class _PinScreenState extends State<PinScreen> {
     });
     if (context.mounted) {
       logMessage('Key derived : $key');
+      HiveManager.openDownloadsBox(key);
       context.appTempData.setPinDerivedKey(key);
       Navigator.pushNamedAndRemoveUntil(
           context, PathValues.home, NavigatorRoutePredicates.deleteAll);

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
+import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/cache/preferences_cache_keys.dart';
 import 'package:safe_file_sender/io/connection_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
@@ -209,8 +210,9 @@ class _ReceiveScreenState extends State<ReceiveScreen>
         final derivedKey = context.appTempData.getPinDerivedKey();
         final encryptedSecretKey =
             await AppCrypto.encryptAESInIsolate(_sharedKey!, derivedKey!);
-        await context.preferences
-            .setString(fileName, base64Encode(encryptedSecretKey));
+
+        HiveManager.saveFile(
+            fileId, file.path, hmac, base64Encode(encryptedSecretKey));
       }
       _clear();
       await _connectionClient.disconnect();

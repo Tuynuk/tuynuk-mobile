@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:safe_file_sender/cache/hive/adapters/download_file_adapter.dart';
+import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/cache/preferences_cache_keys.dart';
 import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
@@ -20,7 +22,7 @@ class TransmissionHistoryScreen extends StatefulWidget {
 }
 
 class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
-  List<FileSystemEntity> _files = [];
+  List<DownloadFile> _files = [];
 
   @override
   void initState() {
@@ -34,11 +36,7 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
     if (!directory.existsSync()) {
       directory.createSync(recursive: true);
     }
-    _files = directory
-        .listSync()
-        .map((e) => File(e.path))
-        .where((e) => !FileSystemEntity.isDirectorySync(e.path))
-        .toList();
+    _files = await HiveManager.getFiles();
 
     setState(() {});
   }
@@ -52,32 +50,29 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
         child: ListView.builder(
           itemCount: _files.length,
           itemBuilder: (context, index) {
-            final file = _files[index];
-            final fileName = FileUtils.fileName(file.path);
+            final downloadedFile = _files[index];
+            final fileName = FileUtils.fileName(downloadedFile.path);
             return InkWell(
               onTap: () async {
-                final pin =
-                    context.preferences.getString(PreferencesCacheKeys.pin)!;
                 final decryptedFile = File(
                     '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
                 await decryptedFile.create(recursive: true);
 
                 if (context.mounted) {
-                  final encryptedSecretKey = context.preferences
-                      .getString(FileUtils.fileName(file.path));
+                  final encryptedSecretKey = downloadedFile.secretKey;
                   logMessage(encryptedSecretKey);
-                  final decryptedSecretKey = await AppCrypto.decryptAESInIsolate(
-                      base64Decode(encryptedSecretKey!),
-                      context.appTempData.getPinDerivedKey()!);
+                  final decryptedSecretKey =
+                      await AppCrypto.decryptAESInIsolate(
+                          base64Decode(encryptedSecretKey),
+                          context.appTempData.getPinDerivedKey()!);
 
                   final decryptedBytes = await AppCrypto.decryptAESInIsolate(
-                      FileUtils.fromFileSystemEntity(file)!.readAsBytesSync(),
+                      File(downloadedFile.path).readAsBytesSync(),
                       decryptedSecretKey);
                   decryptedFile.writeAsBytesSync(decryptedBytes);
 
                   Share.shareXFiles([XFile(decryptedFile.path)])
                       .then((value) async {
-                    logMessage('Sharing end');
                     FileUtils.clearDecryptedCache();
                   });
                 }
@@ -87,9 +82,9 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
                 children: [
                   IconButton(
                     onPressed: () {
-                      final isDeleted =
-                          FileUtils.fromFileSystemEntity(file)?.safeDelete();
-                      _files.remove(file);
+                      final isDeleted = File(downloadedFile.path).safeDelete();
+                      HiveManager.removeDownloadFile(downloadedFile.fileId);
+                      _files.remove(downloadedFile);
                       setState(() {});
                     },
                     icon: const Icon(
