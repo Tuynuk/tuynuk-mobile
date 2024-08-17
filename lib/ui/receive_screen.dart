@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:convert/convert.dart';
@@ -5,17 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
+import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/io/connection_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
 import 'package:safe_file_sender/ui/theme.dart';
+import 'package:safe_file_sender/ui/widgets/close_screen_button.dart';
+import 'package:safe_file_sender/ui/widgets/common_inherited_widget.dart';
 import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/utils/context_utils.dart';
-import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:safe_file_sender/utils/string_utils.dart';
-import 'package:share_plus/share_plus.dart';
 
-import '../crypto/crypto.dart';
+import '../crypto/crypto_core.dart';
 import '../dev/logger.dart';
 import 'widgets/status_logger.dart';
 
@@ -47,28 +49,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      bottomNavigationBar: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            alignment: Alignment.center,
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12), color: Colors.white12),
-            margin: const EdgeInsets.all(24),
-            child: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(
-                Icons.close,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
+      bottomNavigationBar: const CloseScreenButton(),
       backgroundColor: Colors.black,
       body: Container(
         margin: const EdgeInsets.all(24),
@@ -206,10 +187,11 @@ class _ReceiveScreenState extends State<ReceiveScreen>
     _receiverStateController.logStatus(TransferStateEnum.downloadingFile);
 
     _connectionClient.downloadFile(fileId, fileName, path.path,
-        onSuccess: (bytes, fileName) async {
+        onSuccess: (file, fileName) async {
       _receiverStateController.logStatus(TransferStateEnum.checkingHmac);
-      final hmacLocal =
-          hex.encode(await AppCrypto.generateHMACIsolate(_sharedKey!, bytes));
+      final fileBytes = file.readAsBytesSync();
+      final hmacLocal = hex
+          .encode(await AppCrypto.generateHMACIsolate(_sharedKey!, fileBytes));
       if (hmacLocal == hmac) {
         _receiverStateController.logStatus(TransferStateEnum.hmacSuccess);
         logMessage('HMAC check success');
@@ -219,21 +201,23 @@ class _ReceiveScreenState extends State<ReceiveScreen>
         _clear();
         return;
       }
-      _receiverStateController.logStatus(TransferStateEnum.decryptionFile);
-      final decBytes = await AppCrypto.decryptAESInIsolate(bytes, _sharedKey!);
+      _receiverStateController.logStatus(TransferStateEnum.savingEncryptedFile);
 
-      final decryptedFile = File(
-          '${path.path}/${DateTime.now().millisecondsSinceEpoch}_$fileName');
-      _receiverStateController.logStatus(TransferStateEnum.writingFile);
-      decryptedFile.writeAsBytesSync(decBytes);
+      if (mounted) {
+        final derivedKey = context.appTempData.getPinDerivedKey();
+        logMessage(derivedKey?.length);
+        final encryptedSecretKey =
+            await AppCrypto.encryptAESInIsolate(_sharedKey!, derivedKey!);
 
+        HiveManager.saveFile(
+            fileId,
+            file.path,
+            hmac,
+            base64Encode(encryptedSecretKey),
+            context.appTempData.getPinDerivedKeySalt()!);
+      }
       _clear();
       await _connectionClient.disconnect();
-      Share.shareXFiles([
-        XFile(decryptedFile.path),
-      ]).then((value) {
-        decryptedFile.safeDelete();
-      });
     }, onError: () {
       _receiverStateController.logStatus(TransferStateEnum.fileDeleteError);
       _clear();

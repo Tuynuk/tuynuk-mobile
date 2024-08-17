@@ -8,5 +8,10 @@
   "selectFile": "Fayl tanlash",
   "inputSessionId": "Sessiya ID kiriting",
   "appName": "Tuynuk",
-  "language": "Til"
+  "language": "Til",
+  "done": "Tayyor",
+  "save": "Saqlash",
+  "setupPin": "PIN o'rnatish",
+  "inputPin": "PIN kiriting",
+  "continueAuth": "Davom etish"
 }

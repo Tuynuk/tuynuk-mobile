@@ -8,5 +8,10 @@
   "selectFile": "Select file",
   "inputSessionId": "Input session ID",
   "appName": "Tuynuk",
-  "language": "Language"
+  "language": "Language",
+  "done": "Done",
+  "save": "Save",
+  "setupPin": "Setup PIN",
+  "inputPin": "Input PIN",
+  "continueAuth": "Continue"
 }

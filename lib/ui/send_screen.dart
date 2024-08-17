@@ -7,12 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pointycastle/ecc/api.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:safe_file_sender/crypto/crypto.dart';
+import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/connection_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
 import 'package:safe_file_sender/ui/theme.dart';
+import 'package:safe_file_sender/ui/widgets/close_screen_button.dart';
 import 'package:safe_file_sender/ui/widgets/encrypted_key_matrix.dart';
 import 'package:safe_file_sender/ui/widgets/scale_tap.dart';
 import 'package:safe_file_sender/ui/widgets/snap_effect.dart';
@@ -66,28 +67,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      bottomNavigationBar: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            alignment: Alignment.center,
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12), color: Colors.white12),
-            margin: const EdgeInsets.all(24),
-            child: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(
-                Icons.close,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
+      bottomNavigationBar: const CloseScreenButton(),
       backgroundColor: Colors.black,
       body: Container(
         margin: const EdgeInsets.all(24),
@@ -308,6 +288,7 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
   }
 
   _clear() {
+    _selectedFile?.safeDelete(recursive: true);
     _senderStateController.logStatus(TransferStateEnum.initial);
     _sharedKeyDigest = null;
     _textEditingController.clear();
@@ -315,12 +296,15 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
     _privateKey = null;
     _fileBytes = [];
     _selectedFile = null;
-    _key.currentState?.reset();
-    setState(() {});
+    if (context.mounted) {
+      _key.currentState?.reset();
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    _clear();
     _connectionClient.disconnect();
     super.dispose();
   }

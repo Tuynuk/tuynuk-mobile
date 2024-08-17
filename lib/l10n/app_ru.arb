@@ -8,5 +8,11 @@
   "selectFile":"Выбрать файл",
   "inputSessionId":"Введите ID сессии",
   "appName": "Tuynuk",
-  "language": "Язык"
+  "language": "Язык",
+  "done": "Готово",
+  "save": "Сохранить",
+  "setupPin": "Установить ПИН",
+  "inputPin": "Введите ПИН",
+  "continueAuth": "Продолжить"
+
 }

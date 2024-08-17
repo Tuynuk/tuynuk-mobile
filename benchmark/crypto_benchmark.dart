@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:safe_file_sender/crypto/crypto.dart';
+import 'package:safe_file_sender/crypto/crypto_core.dart';
 
 import 'models.dart';
 
@@ -13,10 +13,18 @@ late Uint8List _testKey;
 void main() {
   _testKey = base64Decode(
       AppCrypto.encodeECPublicKey(AppCrypto.generateECKeyPair().publicKey));
+  _benchmarkDeriveKeyByInput();
   _benchmarkSharedKey();
   _benchmarkEncryption();
   _benchmarkEncryptionIsolate();
   _benchmarkHmacGeneration();
+}
+
+void _benchmarkDeriveKeyByInput() async {
+  final benchmark = BenchmarkTimer('key derive by input');
+  await benchmark.runAsync(() async {
+    await AppCrypto.deriveKeyIsolate('abcd@#dx21');
+  });
 }
 
 void _benchmarkEncryptionIsolate() async {

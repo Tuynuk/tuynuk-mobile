@@ -62,6 +62,7 @@ class Downloader {
         updates: Updates.statusAndProgress,
         filename: fileName,
         allowPause: true,
+        directory: 'downloads',
       );
       var prev = 0;
       _downloader.enqueue(
@@ -76,7 +77,7 @@ class Downloader {
           prev = percent;
           if (percent == 100) {
             final path =
-                '${(await getApplicationDocumentsDirectory()).path}/$fileName';
+                '${(await getApplicationDocumentsDirectory()).path}/downloads/$fileName';
             onSuccess?.call(path);
           }
         }

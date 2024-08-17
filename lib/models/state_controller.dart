@@ -25,6 +25,7 @@ enum TransferStateEnum {
   hmacSuccess('File NOT corrupted'),
   fileDeleteError('File deletion error'),
   sharedKeyDigest('Shared key digest'),
+  savingEncryptedFile('Saving encrypted file'),
   clearing('Clearing');
 
   const TransferStateEnum(this.value);

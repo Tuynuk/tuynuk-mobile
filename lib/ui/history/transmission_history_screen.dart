@@ -1,0 +1,124 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:safe_file_sender/cache/hive/adapters/download_file_adapter.dart';
+import 'package:safe_file_sender/cache/hive/hive_manager.dart';
+import 'package:safe_file_sender/crypto/crypto_core.dart';
+import 'package:safe_file_sender/dev/logger.dart';
+import 'package:safe_file_sender/ui/widgets/close_screen_button.dart';
+import 'package:safe_file_sender/ui/widgets/common_inherited_widget.dart';
+import 'package:safe_file_sender/utils/file_utils.dart';
+import 'package:share_plus/share_plus.dart';
+
+class TransmissionHistoryScreen extends StatefulWidget {
+  const TransmissionHistoryScreen({super.key});
+
+  @override
+  State<TransmissionHistoryScreen> createState() =>
+      _TransmissionHistoryScreenState();
+}
+
+class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
+  List<DownloadFile> _files = [];
+
+  @override
+  void initState() {
+    _loadFiles();
+    super.initState();
+  }
+
+  _loadFiles() async {
+    final directory = Directory(
+        '${(await getApplicationDocumentsDirectory()).path}/downloads');
+    if (!directory.existsSync()) {
+      directory.createSync(recursive: true);
+    }
+    _files = await HiveManager.getFiles();
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      bottomNavigationBar: const CloseScreenButton(),
+      body: Container(
+        padding: const EdgeInsets.all(16),
+        child: ListView.builder(
+          itemCount: _files.length,
+          itemBuilder: (context, index) {
+            final downloadedFile = _files[index];
+            final fileName = FileUtils.fileName(downloadedFile.path);
+            return InkWell(
+              onTap: () async {
+                _handleTap(context, downloadedFile, fileName);
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      final isDeleted = File(downloadedFile.path).safeDelete();
+                      HiveManager.removeDownloadFile(downloadedFile.fileId);
+                      _files.remove(downloadedFile);
+                      if (_files.isEmpty) {
+                        Navigator.pop(context);
+                      } else {
+                        setState(() {});
+                      }
+                    },
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                  Flexible(
+                    child: Container(
+                      margin: const EdgeInsets.all(12),
+                      child: Text(
+                        fileName,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(fontSize: 10, color: Colors.green),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    FileUtils.clearDecryptedCache();
+    super.dispose();
+  }
+
+  void _handleTap(BuildContext context, DownloadFile downloadedFile,
+      String fileName) async {
+    final decryptedFile = File(
+        '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
+    await decryptedFile.create(recursive: true);
+
+    if (context.mounted) {
+      final encryptedSecretKey = downloadedFile.secretKey;
+      final decryptedSecretKey = await AppCrypto.decryptAESInIsolate(
+          base64Decode(encryptedSecretKey),
+          context.appTempData.getPinDerivedKey()!);
+      final decryptedBytes = await AppCrypto.decryptAESInIsolate(
+          File(downloadedFile.path).readAsBytesSync(), decryptedSecretKey);
+      decryptedFile.writeAsBytesSync(decryptedBytes);
+
+      Share.shareXFiles([XFile(decryptedFile.path)]).then((value) async {
+        FileUtils.clearDecryptedCache();
+      });
+    }
+  }
+}

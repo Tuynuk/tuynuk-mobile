@@ -15,7 +15,7 @@ class EncryptionKeyWidget extends StatelessWidget {
           shrinkWrap: true,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 8,
-            mainAxisExtent: 12,
+            mainAxisExtent: 24,
           ),
           itemCount: keyMatrix.length,
           itemBuilder: (context, index) {
