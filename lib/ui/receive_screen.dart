@@ -10,6 +10,8 @@ import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/io/connection_client.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:safe_file_sender/models/state_controller.dart';
+import 'package:safe_file_sender/ui/dialogs/dialog_utils.dart';
+import 'package:safe_file_sender/ui/history/transmission_history_screen.dart';
 import 'package:safe_file_sender/ui/theme.dart';
 import 'package:safe_file_sender/ui/widgets/close_screen_button.dart';
 import 'package:safe_file_sender/ui/widgets/common_inherited_widget.dart';
@@ -210,11 +212,18 @@ class _ReceiveScreenState extends State<ReceiveScreen>
             await AppCrypto.encryptAESInIsolate(_sharedKey!, derivedKey!);
 
         HiveManager.saveFile(
-            fileId,
-            file.path,
-            hmac,
-            base64Encode(encryptedSecretKey),
-            context.appTempData.getPinDerivedKeySalt()!);
+                fileId,
+                file.path,
+                hmac,
+                base64Encode(encryptedSecretKey),
+                context.appTempData.getPinDerivedKeySalt()!)
+            .then((value) {
+          TransmissionHistoryScreen(selectedFileIds: {
+            fileId
+          },).showAsModalBottomSheet(
+            context,
+          );
+        });
       }
       _clear();
       await _connectionClient.disconnect();

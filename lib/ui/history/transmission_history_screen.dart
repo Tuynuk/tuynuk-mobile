@@ -7,13 +7,16 @@ import 'package:safe_file_sender/cache/hive/adapters/download_file_adapter.dart'
 import 'package:safe_file_sender/cache/hive/hive_manager.dart';
 import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
+import 'package:safe_file_sender/ui/dialogs/loading_dialog.dart';
 import 'package:safe_file_sender/ui/widgets/close_screen_button.dart';
 import 'package:safe_file_sender/ui/widgets/common_inherited_widget.dart';
 import 'package:safe_file_sender/utils/file_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 class TransmissionHistoryScreen extends StatefulWidget {
-  const TransmissionHistoryScreen({super.key});
+  final Set<String> selectedFileIds;
+
+  const TransmissionHistoryScreen({super.key, this.selectedFileIds = const {}});
 
   @override
   State<TransmissionHistoryScreen> createState() =>
@@ -86,6 +89,8 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
                       ),
                     ),
                   ),
+                  if (widget.selectedFileIds.contains(downloadedFile.fileId))
+                    const Badge(),
                 ],
               ),
             );
@@ -103,6 +108,7 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
 
   void _handleTap(BuildContext context, DownloadFile downloadedFile,
       String fileName) async {
+    LoadingDialog.showLoadingDialog(context);
     final decryptedFile = File(
         '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
     await decryptedFile.create(recursive: true);
@@ -116,6 +122,9 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
           File(downloadedFile.path).readAsBytesSync(), decryptedSecretKey);
       decryptedFile.writeAsBytesSync(decryptedBytes);
 
+      if(context.mounted) {
+        LoadingDialog.hideLoadingDialog(context);
+      }
       Share.shareXFiles([XFile(decryptedFile.path)]).then((value) async {
         FileUtils.clearDecryptedCache();
       });
