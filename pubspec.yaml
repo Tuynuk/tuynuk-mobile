@@ -45,6 +45,7 @@ dependencies:
   quick_actions: ^1.0.7
   flutter_bloc: ^8.1.6
   encrypt_shared_preferences: ^0.7.5
+  modal_bottom_sheet: ^3.0.0
   signalr_netcore:
     git:
       url: https://github.com/xaldarof/signalr_client_plus.git
