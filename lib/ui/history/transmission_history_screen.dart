@@ -109,11 +109,27 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
   void _handleTap(BuildContext context, DownloadFile downloadedFile,
       String fileName) async {
     LoadingDialog.showLoadingDialog(context);
-    final decryptedFile = File(
-        '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
-    await decryptedFile.create(recursive: true);
 
     if (context.mounted) {
+      final decryptResult = await _decryptFile(downloadedFile, fileName);
+      if (context.mounted) {
+        LoadingDialog.hideLoadingDialog(context);
+      }
+      if (decryptResult != null) {
+        Share.shareXFiles([XFile(decryptResult)]).then((value) async {
+          FileUtils.clearDecryptedCache();
+        });
+      }
+    }
+  }
+
+  Future<String?> _decryptFile(
+      DownloadFile downloadedFile, String fileName) async {
+    try {
+      final decryptedFile = File(
+          '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
+      await decryptedFile.create(recursive: true);
+
       final encryptedSecretKey = downloadedFile.secretKey;
       final decryptedSecretKey = await AppCrypto.decryptAESInIsolate(
           base64Decode(encryptedSecretKey),
@@ -121,13 +137,9 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
       final decryptedBytes = await AppCrypto.decryptAESInIsolate(
           File(downloadedFile.path).readAsBytesSync(), decryptedSecretKey);
       decryptedFile.writeAsBytesSync(decryptedBytes);
-
-      if(context.mounted) {
-        LoadingDialog.hideLoadingDialog(context);
-      }
-      Share.shareXFiles([XFile(decryptedFile.path)]).then((value) async {
-        FileUtils.clearDecryptedCache();
-      });
+      return decryptedFile.path;
+    } catch (e) {
+      return null;
     }
   }
 }
