@@ -59,7 +59,7 @@ class _PinScreenState extends State<PinScreen> {
                         : context.preferences
                                     .getString(PreferencesCacheKeys.pin) !=
                                 null
-                            ? Text(context.localization.done)
+                            ? Text(context.localization.continueAuth)
                             : Text(context.localization.setupPin),
                   ),
                 ),

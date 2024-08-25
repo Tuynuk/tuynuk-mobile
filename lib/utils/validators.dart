@@ -1,6 +1,6 @@
 import 'dart:io';
 
-int maxFileTransferSizeInMB = 100;
+const int maxFileTransferSizeInMB = 100;
 
 class Validators {
   static bool canHandleFile(File? file) {

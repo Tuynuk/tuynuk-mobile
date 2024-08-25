@@ -1,5 +1,6 @@
 #!/bin/bash
 
+read -p "Enter server ip address: " serverIp
 # Define the .env file name
 ENV_FILE="environment.env"
 
@@ -10,6 +11,7 @@ KEY=$(openssl rand -base64 12)
 if [ ! -f "$ENV_FILE" ]; then
     touch $ENV_FILE
     echo "key='$KEY'" >> $ENV_FILE
+    echo "serverIp='$serverIp'" >> $ENV_FILE
     echo ".env file created with a key."
 else
     echo "env.env file already exists."
