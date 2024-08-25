@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/io/downloader.dart';
 import 'package:safe_file_sender/models/base/base_event_listener.dart';
+import 'package:safe_file_sender/models/environment.dart';
 import 'package:safe_file_sender/models/event_listeners.dart';
 import 'package:signalr_netcore/json_hub_protocol.dart';
 import 'package:signalr_netcore/signalr_client.dart';
@@ -10,11 +11,11 @@ import 'package:signalr_netcore/signalr_client.dart';
 class ConnectionClient {
   final BaseEventListeners _eventNotifier;
   late HubConnection? _connection;
-  static String baseUrl = 'http://192.168.1.18:8088/api/';
+  static String baseUrl = 'http://${Environment.serverIp}:8088/api/';
 
   void buildSignalR() {
     _connection = HubConnectionBuilder()
-        .withUrl('http://192.168.1.18:8088/hubs/session')
+        .withUrl('http://${Environment.serverIp}:8088/hubs/session')
         .withHubProtocol(JsonHubProtocol())
         .withSingleListener(true)
         .build();
