@@ -13,5 +13,6 @@
   "save": "Saqlash",
   "setupPin": "PIN o'rnatish",
   "inputPin": "PIN kiriting",
-  "continueAuth": "Davom etish"
+  "continueAuth": "Davom etish",
+  "invalidPin": "Noto'gri PIN"
 }

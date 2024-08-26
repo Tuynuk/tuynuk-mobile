@@ -184,6 +184,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Continue'**
   String get continueAuth;
+
+  /// No description provided for @invalidPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid PIN'**
+  String get invalidPin;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

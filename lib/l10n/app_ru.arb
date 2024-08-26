@@ -13,6 +13,6 @@
   "save": "Сохранить",
   "setupPin": "Установить ПИН",
   "inputPin": "Введите ПИН",
-  "continueAuth": "Продолжить"
-
+  "continueAuth": "Продолжить",
+  "invalidPin": "Неверный ПИН"
 }
