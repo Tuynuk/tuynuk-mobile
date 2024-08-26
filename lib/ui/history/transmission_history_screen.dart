@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:safe_file_sender/cache/hive/adapters/download_file_adapter.dart';
 import 'package:safe_file_sender/cache/hive/hive_manager.dart';
+import 'package:safe_file_sender/cache/preferences_cache_keys.dart';
 import 'package:safe_file_sender/crypto/crypto_core.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/ui/dialogs/loading_dialog.dart';
@@ -49,53 +51,64 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
       bottomNavigationBar: const CloseScreenButton(),
       body: Container(
         padding: const EdgeInsets.all(16),
-        child: ListView.builder(
-          itemCount: _files.length,
-          itemBuilder: (context, index) {
-            final downloadedFile = _files[index];
-            final fileName = FileUtils.fileName(downloadedFile.path);
-            return InkWell(
-              onTap: () async {
-                _handleTap(context, downloadedFile, fileName);
-              },
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      final isDeleted = File(downloadedFile.path).safeDelete();
-                      HiveManager.removeDownloadFile(downloadedFile.fileId);
-                      _files.remove(downloadedFile);
-                      if (_files.isEmpty) {
-                        Navigator.pop(context);
-                      } else {
-                        setState(() {});
-                      }
+        child: _files.isEmpty
+            ? const Center(
+                child: Icon(
+                  CupertinoIcons.cube_box,
+                  color: Colors.white12,
+                  size: 100,
+                ),
+              )
+            : ListView.builder(
+                itemCount: _files.length,
+                itemBuilder: (context, index) {
+                  final downloadedFile = _files[index];
+                  final fileName = FileUtils.fileName(downloadedFile.path);
+                  return InkWell(
+                    onTap: () async {
+                      _handleTap(context, downloadedFile, fileName);
                     },
-                    icon: const Icon(
-                      Icons.delete,
-                      color: Colors.redAccent,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            final isDeleted =
+                                File(downloadedFile.path).safeDelete();
+                            HiveManager.removeDownloadFile(
+                                downloadedFile.fileId);
+                            _files.remove(downloadedFile);
+                            if (_files.isEmpty) {
+                              Navigator.pop(context);
+                            } else {
+                              setState(() {});
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                        Flexible(
+                          child: Container(
+                            margin: const EdgeInsets.all(12),
+                            child: Text(
+                              fileName,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(fontSize: 10, color: Colors.green),
+                            ),
+                          ),
+                        ),
+                        if (widget.selectedFileIds
+                            .contains(downloadedFile.fileId))
+                          const Badge(),
+                      ],
                     ),
-                  ),
-                  Flexible(
-                    child: Container(
-                      margin: const EdgeInsets.all(12),
-                      child: Text(
-                        fileName,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(fontSize: 10, color: Colors.green),
-                      ),
-                    ),
-                  ),
-                  if (widget.selectedFileIds.contains(downloadedFile.fileId))
-                    const Badge(),
-                ],
+                  );
+                },
               ),
-            );
-          },
-        ),
       ),
     );
   }
@@ -119,7 +132,12 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
         Share.shareXFiles([XFile(decryptResult)]).then((value) async {
           FileUtils.clearDecryptedCache();
         });
+      } else {
+        logMessage("hide");
+        LoadingDialog.hideLoadingDialog(context);
       }
+    } else {
+      logMessage('unmounted');
     }
   }
 
@@ -133,12 +151,14 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
       final encryptedSecretKey = downloadedFile.secretKey;
       final decryptedSecretKey = await AppCrypto.decryptAESInIsolate(
           base64Decode(encryptedSecretKey),
-          context.appTempData.getPinDerivedKey()!);
+          AppCrypto.sha256Digest(utf8.encode(context.appTempData.getPin()!),
+              salt: base64Decode(downloadedFile.salt)));
       final decryptedBytes = await AppCrypto.decryptAESInIsolate(
           File(downloadedFile.path).readAsBytesSync(), decryptedSecretKey);
       decryptedFile.writeAsBytesSync(decryptedBytes);
       return decryptedFile.path;
     } catch (e) {
+      logMessage(e.toString());
       return null;
     }
   }

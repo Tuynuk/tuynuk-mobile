@@ -48,4 +48,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get continueAuth => 'Продолжить';
+
+  @override
+  String get invalidPin => 'Неверный ПИН';
 }

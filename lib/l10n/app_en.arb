@@ -13,5 +13,6 @@
   "save": "Save",
   "setupPin": "Setup PIN",
   "inputPin": "Input PIN",
-  "continueAuth": "Continue"
+  "continueAuth": "Continue",
+  "invalidPin": "Invalid PIN"
 }

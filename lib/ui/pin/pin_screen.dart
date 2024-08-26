@@ -24,49 +24,58 @@ class _PinScreenState extends State<PinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Align(
-            alignment: Alignment.center,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  margin: const EdgeInsets.all(32),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: context.localization.inputPin,
+    return GestureDetector(
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.all(32),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: context.localization.inputPin,
+                      ),
+                      controller: _textEditingController,
                     ),
-                    controller: _textEditingController,
                   ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(right: 32),
-                  child: TextButton(
-                    onPressed: () {
-                      if (_textEditingController.text.trim().length > 3) {
-                        _handleTap(context);
-                      }
-                    },
-                    child: _loading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(),
-                          )
-                        : context.preferences
-                                    .getString(PreferencesCacheKeys.pin) !=
-                                null
-                            ? Text(context.localization.continueAuth)
-                            : Text(context.localization.setupPin),
+                  Container(
+                    margin: const EdgeInsets.only(right: 32),
+                    child: TextButton(
+                      onPressed: () {
+                        if (_textEditingController.text.trim().length > 3) {
+                          _handleTap(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(context.localization.invalidPin),
+                          ));
+                        }
+                      },
+                      child: _loading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(),
+                            )
+                          : context.preferences
+                                      .getString(PreferencesCacheKeys.pin) !=
+                                  null
+                              ? Text(context.localization.continueAuth)
+                              : Text(context.localization.setupPin),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -84,7 +93,9 @@ class _PinScreenState extends State<PinScreen> {
       if (checkValidPin(context)) {
         _goHome(context);
       } else {
-        logMessage('Fuu!');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(context.localization.invalidPin),
+        ));
       }
     } else {
       context.preferences
@@ -103,19 +114,23 @@ class _PinScreenState extends State<PinScreen> {
       _loading = true;
     });
     final salt = AppCrypto.generateSalt();
-    final key = AppCrypto.sha256Digest(
+    final fileEncryptedKey = AppCrypto.sha256Digest(
         utf8.encode(_textEditingController.text.trim()),
         salt: salt);
     setState(() {
       _loading = false;
     });
     if (context.mounted) {
-      logMessage('Key derived[${key.length}] : $key');
-      HiveManager.openDownloadsBox(key);
-      context.appTempData.setPinDerivedKey(key);
-      context.appTempData.setPinDerivedKeySalt(salt);
-      Navigator.pushNamedAndRemoveUntil(
-          context, PathValues.home, NavigatorRoutePredicates.deleteAll);
+      final dbEncryptedKey = AppCrypto.sha256Digest(
+          utf8.encode(_textEditingController.text.trim()));
+      await HiveManager.openDownloadsBox(dbEncryptedKey);
+      if (context.mounted) {
+        context.appTempData.setPinDerivedKey(fileEncryptedKey);
+        context.appTempData.setPin(_textEditingController.text.trim());
+        context.appTempData.setPinDerivedKeySalt(salt);
+        Navigator.pushNamedAndRemoveUntil(
+            context, PathValues.home, NavigatorRoutePredicates.deleteAll);
+      }
     }
   }
 }

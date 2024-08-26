@@ -90,26 +90,30 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                 padding: EdgeInsets.all(24),
               ),
               if (_identifier != null)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        if (_identifier == null) return;
-                        Clipboard.setData(ClipboardData(text: _identifier!));
-                      },
-                      child: Text(
-                        _identifier!,
-                        style: AppTheme.textTheme.titleMedium
-                            ?.copyWith(fontSize: 20),
-                      ),
+                InkWell(
+                  onTap: () {
+                    if (_identifier == null) return;
+                    Clipboard.setData(ClipboardData(text: _identifier!));
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _identifier!,
+                          style: AppTheme.textTheme.titleMedium
+                              ?.copyWith(fontSize: 20),
+                        ),
+                        Text(
+                          context.localization.tapToCopy,
+                          style: AppTheme.textTheme.titleMedium
+                              ?.copyWith(color: Colors.white54, fontSize: 12),
+                        ),
+                      ],
                     ),
-                    Text(
-                      context.localization.tapToCopy,
-                      style: AppTheme.textTheme.titleMedium
-                          ?.copyWith(color: Colors.white54, fontSize: 12),
-                    ),
-                  ],
+                  ),
                 ),
               const Padding(
                 padding: EdgeInsets.all(6),
@@ -207,7 +211,7 @@ class _ReceiveScreenState extends State<ReceiveScreen>
 
       if (mounted) {
         final derivedKey = context.appTempData.getPinDerivedKey();
-        logMessage(derivedKey?.length);
+
         final encryptedSecretKey =
             await AppCrypto.encryptAESInIsolate(_sharedKey!, derivedKey!);
 
@@ -218,9 +222,9 @@ class _ReceiveScreenState extends State<ReceiveScreen>
                 base64Encode(encryptedSecretKey),
                 context.appTempData.getPinDerivedKeySalt()!)
             .then((value) {
-          TransmissionHistoryScreen(selectedFileIds: {
-            fileId
-          },).showAsModalBottomSheet(
+          TransmissionHistoryScreen(
+            selectedFileIds: {fileId},
+          ).showAsModalBottomSheet(
             context,
           );
         });

@@ -121,8 +121,9 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
               const Padding(
                 padding: EdgeInsets.all(16),
               ),
-              ScaleTap(
-                onPressed: () async {
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () async {
                   if (_senderStateController.canSend) {
                     final files =
                         (await FilePicker.platform.pickFiles())?.files ?? [];
@@ -136,33 +137,36 @@ class _SendScreenState extends State<SendScreen> implements SenderListeners {
                     }
                   }
                 },
-                child: Snappable(
-                  key: _key,
-                  onSnapped: () {
-                    _clear();
-                  },
-                  child: Container(
-                    height: 42,
-                    alignment: Alignment.center,
-                    child: _selectedFile == null
-                        ? Text(
-                            context.localization.selectFile,
-                            style: AppTheme.textTheme.titleMedium,
-                          )
-                        : ListView.builder(
-                            itemExtent: 34,
-                            itemCount: (_fileBytes.length * .01).toInt(),
-                            scrollDirection: Axis.horizontal,
-                            itemBuilder: (e, index) {
-                              final bit = _fileBytes[index]
-                                  .toRadixString(2)
-                                  .padLeft(8, '0');
-                              return Text(
-                                bit,
-                                style: AppTheme.textTheme.titleMedium,
-                              );
-                            },
-                          ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Snappable(
+                    key: _key,
+                    onSnapped: () {
+                      _clear();
+                    },
+                    child: Container(
+                      height: 42,
+                      alignment: Alignment.center,
+                      child: _selectedFile == null
+                          ? Text(
+                              context.localization.selectFile,
+                              style: AppTheme.textTheme.titleMedium,
+                            )
+                          : ListView.builder(
+                              itemExtent: 34,
+                              itemCount: (_fileBytes.length * .01).toInt(),
+                              scrollDirection: Axis.horizontal,
+                              itemBuilder: (e, index) {
+                                final bit = _fileBytes[index]
+                                    .toRadixString(2)
+                                    .padLeft(8, '0');
+                                return Text(
+                                  bit,
+                                  style: AppTheme.textTheme.titleMedium,
+                                );
+                              },
+                            ),
+                    ),
                   ),
                 ),
               ),
