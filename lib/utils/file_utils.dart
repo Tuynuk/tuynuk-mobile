@@ -14,7 +14,7 @@ class FileUtils {
 
   static Future<bool> clearDecryptedCache() async {
     return File('${(await getApplicationDocumentsDirectory()).path}/downloads/temp/')
-            .safeDelete(recursive: true) &&
+            .safeDelete(recursive: false) &&
         File('${(await getApplicationCacheDirectory()).path}/share_plus/')
             .safeDelete(recursive: true);
   }
