@@ -30,6 +30,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await HiveManager.init();
 
   await EncryptedSharedPreferences.initialize(Environment.key);

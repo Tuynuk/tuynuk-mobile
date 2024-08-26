@@ -115,6 +115,7 @@ class _PinScreenState extends State<PinScreen> {
       await HiveManager.openDownloadsBox(dbEncryptedKey);
       if (context.mounted) {
         context.appTempData.setPinDerivedKey(fileEncryptedKey);
+        context.appTempData.setPin(_textEditingController.text.trim());
         context.appTempData.setPinDerivedKeySalt(salt);
         Navigator.pushNamedAndRemoveUntil(
             context, PathValues.home, NavigatorRoutePredicates.deleteAll);

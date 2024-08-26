@@ -273,11 +273,11 @@ class AppCrypto {
     return Uint8List.fromList(byteList);
   }
 
-  static Uint8List sha256Digest(Uint8List input, {Uint8List? salt}) {
+  static Uint8List sha256Digest(Uint8List input, {List? salt}) {
     final Digest sha256 = SHA256Digest();
     final saltedInput = List<int>.from(input);
     if (salt != null) {
-      saltedInput.addAll(salt);
+      saltedInput.addAll(Iterable.castFrom(salt));
     }
     return sha256.process(Uint8List.fromList(saltedInput));
   }
@@ -334,8 +334,12 @@ void _generateHMACIsolateEntry(_IsolateData data) {
 }
 
 void _decryptIsolateEntry(_IsolateData data) {
-  final decryptedBytes = AppCrypto.decryptAES(data.bytes, data.sharedKey);
-  data.sendPort.send(decryptedBytes);
+  try {
+    final decryptedBytes = AppCrypto.decryptAES(data.bytes, data.sharedKey);
+    data.sendPort.send(decryptedBytes);
+  } catch (e) {
+    data.sendPort.send([]);
+  }
 }
 
 class _IsolateData {
