@@ -8,10 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:safe_file_sender/cache/hive/hive_manager.dart';
+import 'package:safe_file_sender/cache/preferences_cache_keys.dart';
 import 'package:safe_file_sender/common/app_temp_data.dart';
 import 'package:safe_file_sender/common/constants.dart';
 import 'package:safe_file_sender/models/path_values.dart';
-import 'package:safe_file_sender/models/pref_keys.dart';
 import 'package:safe_file_sender/dev/logger.dart';
 import 'package:safe_file_sender/l10n/gen/app_localizations.dart';
 import 'package:safe_file_sender/models/environment.dart';
@@ -67,7 +67,7 @@ class Tuynuk extends StatelessWidget {
                 PathValues.home: (context) => const HomeScreen(),
               },
               locale: Locale(EncryptedSharedPreferences.getInstance().getString(
-                  PrefKeys.localeCode,
+                  PreferencesCacheKeys.localeCode,
                   defaultValue:
                       AppLocalizations.supportedLocales.first.languageCode)!),
               debugShowCheckedModeBanner: false,

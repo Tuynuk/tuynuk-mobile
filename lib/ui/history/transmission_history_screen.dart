@@ -128,7 +128,7 @@ class _TransmissionHistoryScreenState extends State<TransmissionHistoryScreen> {
     try {
       final decryptedFile = File(
           '${(await getApplicationDocumentsDirectory()).path}/downloads/temp/$fileName');
-      await decryptedFile.create(recursive: true);
+      await decryptedFile.create(recursive: false);
 
       final encryptedSecretKey = downloadedFile.secretKey;
       final decryptedSecretKey = await AppCrypto.decryptAESInIsolate(

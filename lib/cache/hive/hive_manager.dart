@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:safe_file_sender/cache/hive/adapters/download_file_adapter.dart';
+import 'package:safe_file_sender/dev/logger.dart';
 
 class HiveManager {
   HiveManager._();

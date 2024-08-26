@@ -103,19 +103,22 @@ class _PinScreenState extends State<PinScreen> {
       _loading = true;
     });
     final salt = AppCrypto.generateSalt();
-    final key = AppCrypto.sha256Digest(
+    final fileEncryptedKey = AppCrypto.sha256Digest(
         utf8.encode(_textEditingController.text.trim()),
         salt: salt);
     setState(() {
       _loading = false;
     });
     if (context.mounted) {
-      logMessage('Key derived[${key.length}] : $key');
-      HiveManager.openDownloadsBox(key);
-      context.appTempData.setPinDerivedKey(key);
-      context.appTempData.setPinDerivedKeySalt(salt);
-      Navigator.pushNamedAndRemoveUntil(
-          context, PathValues.home, NavigatorRoutePredicates.deleteAll);
+      final dbEncryptedKey = AppCrypto.sha256Digest(
+          utf8.encode(_textEditingController.text.trim()));
+      await HiveManager.openDownloadsBox(dbEncryptedKey);
+      if (context.mounted) {
+        context.appTempData.setPinDerivedKey(fileEncryptedKey);
+        context.appTempData.setPinDerivedKeySalt(salt);
+        Navigator.pushNamedAndRemoveUntil(
+            context, PathValues.home, NavigatorRoutePredicates.deleteAll);
+      }
     }
   }
 }
